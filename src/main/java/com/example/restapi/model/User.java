@@ -103,8 +103,8 @@ public class User {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		return username.equals(((User)obj).getUsername());
+	public boolean equals(Object obj){
+		return username.equals(((User) obj).getUsername()) && !username.equalsIgnoreCase(((User) obj).getUsername());
 	}
 
 
