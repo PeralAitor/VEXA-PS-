@@ -11,18 +11,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.restapi.dto.CredentialsDTO;
 import com.example.restapi.dto.UserDTO;
 import com.example.restapi.model.User;
 import com.example.restapi.service.AuthService;
-
-
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 	
 	private final AuthService authService;
-	private HashMap<User, String> activeTokens = new HashMap<>();
 	
 	public AuthController(AuthService authService) {
 		this.authService = authService;
@@ -30,12 +28,20 @@ public class AuthController {
 	
 	@PostMapping("/registration")
 	public ResponseEntity<User> register(@RequestBody UserDTO userDTO) {
-		System.out.println("\n\n UserDTO: \n\n" + userDTO.getUsername());
 		if (authService.register(userDTO)) {
 			return new ResponseEntity<>(HttpStatus.OK);
         }
 		return new ResponseEntity<>(HttpStatus.CONFLICT);
     }
+	
+	@PostMapping("/login")
+	public ResponseEntity<User> login(@RequestBody CredentialsDTO credentialsDTO) {
+		boolean response = authService.login(credentialsDTO);
+		if(response) {
+			return new ResponseEntity<>(HttpStatus.OK);
+		}
+		return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+	}
 }
 
 
