@@ -1,5 +1,6 @@
 package com.example.restapi.client;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.ui.Model;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -37,12 +39,14 @@ public class UserManager {
 		model.addAttribute("currentUrl", ServletUriComponentsBuilder.fromRequestUri(request).toUriString());
 	}
 	
-	
+	@GetMapping("/registration")
+	public String showRegistrationForm(Model model) {
+		return "registration";
+	}
 	
 	@PostMapping("/registration")
 	public String registerUser(@RequestParam String username,@RequestParam String password,@RequestParam String name,
 			@RequestParam String surnames,@RequestParam int age, Model model) {
-		System.out.println("User: " + username + " " + password + " " + name + " " + surnames + " " + age);
 		User user = new User(username, password, name, surnames, age);
 		
 		if (registerUser(user)) {
@@ -55,19 +59,22 @@ public class UserManager {
 	}
 	
 	public boolean registerUser(User user) {
-		System.out.println("User: " + user.getUsername() + " " + user.getPassword() + " " + user.getName() + " " + user.getSurnames() + " " + user.getAge());
-		ResponseEntity<User> userResponse = restTemplate.postForEntity(USER_CONTROLLER_URL, user, User.class);
-		System.out.println(userResponse.getStatusCode());
-		if (userResponse.getStatusCode().is2xxSuccessful()) {
-			return true;
-		} else {
-			return false;
-		}
+	    try {
+	        ResponseEntity<User> userResponse = restTemplate.postForEntity(USER_CONTROLLER_URL, user, User.class);
+	        return userResponse.getStatusCode().is2xxSuccessful();
+	    } catch (HttpClientErrorException ex) {
+	        if (ex.getStatusCode() == HttpStatus.CONFLICT) {
+	            return false;
+	        } else {
+	            throw ex;
+	        }
+	    }
 	}
 
-	 @GetMapping("/home")
-	    public String registerForm(User user) {
-	        return "registration"; 
-	    }
+
+	 @GetMapping("/")
+	 public String registerForm(User user) {
+		 return "index"; 
+	 }
 	
 }
