@@ -10,7 +10,12 @@
     <div class="registration-container">
         <h2>Log into your account</h2>
         <!-- El formulario se vincula a un objeto "user" -->
-        <form th:action="@{/login}" method="post">
+		<form th:if="${token != null}" th:href="@{/login}" th:action="@{/logout}" method="post">
+            <div class="form-group">
+                <button type="submit">Log out</button>
+			</div>
+		</form>
+        <form th:if="${token == null}" th:href="@{/login}" th:action="@{/login}" method="post">
             <div class="form-group">
                 <label for="username">Nombre de usuario:</label>
                 <input type="text" id="username" name="username" placeholder="Nombre de usuario" required>
@@ -20,7 +25,7 @@
                 <input type="password" id="password" name="password" placeholder="Contraseña" required>
             </div>
             <div class="form-group">
-                <button type="submit">Log in</button>
+                	<button type="submit">Log in</button>
             </div>
         </form>
         <!-- Mensaje de error -->

@@ -45,6 +45,14 @@ public class AuthService {
 		return null;
 	}
 
+	public boolean logout(String token) {
+		if (tokenMap.containsKey(token)) {
+			tokenMap.remove(token);
+			return true;
+		}
+		return false;
+	}
+	
 	private static synchronized String generateToken() {
         return Long.toHexString(System.currentTimeMillis());
     }

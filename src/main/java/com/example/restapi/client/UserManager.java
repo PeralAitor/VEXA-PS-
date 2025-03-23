@@ -46,12 +46,12 @@ public class UserManager {
 	}
 
 	@PostMapping("/registration")
-	public String registerUser(@RequestParam String username,@RequestParam String password,@RequestParam String name,
+	public String register(@RequestParam String username,@RequestParam String password,@RequestParam String name,
 			@RequestParam String surnames,@RequestParam int age, Model model) {
 				
 		User user = new User(username, password, name, surnames, age);
 
-		if (registerUser(user)) {
+		if (register(user)) {
 			model.addAttribute("successMessage", "User registered successfully");
 		} else {
 			model.addAttribute("errorMessage", "User already exists");
@@ -67,11 +67,24 @@ public class UserManager {
 	}
 
 	@PostMapping("/login")
-	public String loginUser(@RequestParam String username, @RequestParam String password, Model model) {
+	public String login(@RequestParam String username, @RequestParam String password, Model model) {
 		User user = new User(username, password);
-		token = loginUser(user);
+		token = login(user);
 		if (token != null) {
+			model.addAttribute("token", token);
 			model.addAttribute("successMessage", "User logged in successfully");
+		} else {
+			model.addAttribute("errorMessage", "User not found");
+		}
+		return "login";
+	}
+	
+	@PostMapping("/logout")
+	public String logout(Model model) {
+		if (logout(token)) {
+			token = null;
+			model.addAttribute("token", token);
+			model.addAttribute("successMessage", "User logged out successfully");
 		} else {
 			model.addAttribute("errorMessage", "User not found");
 		}
@@ -79,7 +92,7 @@ public class UserManager {
 	}
 
 	// A partir de aquí son las funciones que podríamos poner en el Service del lado del cliente
-	public boolean registerUser(User user) {
+	public boolean register(User user) {
 		try {
 			String url = USER_CONTROLLER_URL.concat("/registration");
 			ResponseEntity<User> userResponse = restTemplate.postForEntity(url, user, User.class);
@@ -93,7 +106,7 @@ public class UserManager {
 		}
 	}
 	
-	public String loginUser(User user) {
+	public String login(User user) {
 		try {
 			String url = USER_CONTROLLER_URL.concat("/login");
 			ResponseEntity<String> userResponse = restTemplate.postForEntity(url, user, String.class);
@@ -106,8 +119,18 @@ public class UserManager {
 			}
 		}
 	}
-
-
-
-
+	
+	public boolean logout(String token) {
+		try {
+			String url = USER_CONTROLLER_URL.concat("/logout");
+			ResponseEntity<Boolean> userResponse = restTemplate.postForEntity(url, token, Boolean.class);
+			return userResponse.getBody();
+		} catch (HttpClientErrorException ex) {
+			if (ex.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+				return false;
+			} else {
+				throw ex;
+			}
+		}
+	}
 }

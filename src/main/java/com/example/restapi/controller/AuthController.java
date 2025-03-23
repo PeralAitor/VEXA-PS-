@@ -38,6 +38,14 @@ public class AuthController {
 		}
 		return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 	}
+	
+	@PostMapping("/logout")
+	public ResponseEntity<Boolean> logout(@RequestBody String token) {
+		if(authService.logout(token)) {
+			return new ResponseEntity<>(true, HttpStatus.OK);
+		}
+		return new ResponseEntity<>(false, HttpStatus.UNAUTHORIZED);
+	}
 }
 
 
