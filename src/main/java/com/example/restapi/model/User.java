@@ -93,7 +93,6 @@ public class User {
 
 	@Override
 	public int hashCode() {
-		// TODO Auto-generated method stub
 		return username.hashCode();
 	}
 
@@ -104,9 +103,6 @@ public class User {
 
 	@Override
 	public boolean equals(Object obj){
-		return username.equals(((User) obj).getUsername()) && !username.equalsIgnoreCase(((User) obj).getUsername());
+		return username.equals(((User) obj).getUsername());
 	}
-
-
-
 }
