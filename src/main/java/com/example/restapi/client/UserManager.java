@@ -62,6 +62,7 @@ public class UserManager {
 
 	@GetMapping("/login")
 	public String showLoginForm(Model model) {
+		System.out.println("Debugging");
 		return "login";
 	}
 
