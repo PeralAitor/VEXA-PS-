@@ -1,6 +1,8 @@
 package com.example.restapi.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,13 +15,14 @@ import com.example.restapi.repository.UserRepository;
 public class AuthService {
 
 	private final UserRepository userRepository;
+	private static Map<String, User> tokenMap = new HashMap<>();
 
 	public AuthService(UserRepository userRepository) {
 		this.userRepository = userRepository;
 	}
+
 	@Transactional
 	public boolean register(UserDTO userDTO) {
-		System.out.println("UserDTO: " + userDTO.getUsername());
 		if (userRepository.findByUsername(userDTO.getUsername()) == null) {
 			User user = new User(userDTO);
 			userRepository.save(user);
@@ -28,13 +31,29 @@ public class AuthService {
 		return false;
 	}
 	
-	public boolean login(CredentialsDTO credentials) {
+	public String login(CredentialsDTO credentials) {
 		User user = userRepository.findByUsername(credentials.getUsername());
+	
 		if (user != null && user.getPassword().equals(credentials.getPassword())) {
+			if (tokenMap.containsValue(user)) {
+				return null;
+			}
+			String token = generateToken();
+			tokenMap.put(token, user);
+			return token;
+		}
+		return null;
+	}
+
+	public boolean logout(String token) {
+		if (tokenMap.containsKey(token)) {
+			tokenMap.remove(token);
 			return true;
 		}
 		return false;
 	}
-
+	
+	private static synchronized String generateToken() {
+        return Long.toHexString(System.currentTimeMillis());
+    }
 }
-

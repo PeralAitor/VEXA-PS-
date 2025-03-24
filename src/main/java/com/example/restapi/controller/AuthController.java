@@ -1,9 +1,5 @@
 package com.example.restapi.controller;
 
-import java.util.HashMap;
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,12 +31,20 @@ public class AuthController {
     }
 	
 	@PostMapping("/login")
-	public ResponseEntity<User> login(@RequestBody CredentialsDTO credentialsDTO) {
-		boolean response = authService.login(credentialsDTO);
-		if(response) {
-			return new ResponseEntity<>(HttpStatus.OK);
+	public ResponseEntity<String> login(@RequestBody CredentialsDTO credentialsDTO) {
+		String response = authService.login(credentialsDTO);
+		if(response != null) {
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
-		return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+		return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+	}
+	
+	@PostMapping("/logout")
+	public ResponseEntity<Boolean> logout(@RequestBody String token) {
+		if(authService.logout(token)) {
+			return new ResponseEntity<>(true, HttpStatus.OK);
+		}
+		return new ResponseEntity<>(false, HttpStatus.UNAUTHORIZED);
 	}
 }
 
