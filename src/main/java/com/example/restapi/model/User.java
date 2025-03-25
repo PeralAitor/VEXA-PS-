@@ -1,5 +1,7 @@
 package com.example.restapi.model;
 
+
+
 import com.example.restapi.dto.UserDTO;
 
 import jakarta.persistence.Entity;
@@ -22,7 +24,7 @@ public class User {
 	private int age;
 
 	// No-argument constructor
-	public User() {
+	public User(){
 	}
 
 	public User(String username, String password) {

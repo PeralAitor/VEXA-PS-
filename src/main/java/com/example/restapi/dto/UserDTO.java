@@ -1,9 +1,6 @@
 package com.example.restapi.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 public class UserDTO {
-	@JsonProperty("username")
 	private String username;
 
 	private String password;
@@ -17,7 +14,6 @@ public class UserDTO {
 	public UserDTO() {
 
 	}
-
 
 	public UserDTO(String username, String password, String name, String surnames, int age) {
 		this.username = username;
