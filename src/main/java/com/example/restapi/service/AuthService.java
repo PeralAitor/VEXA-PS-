@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.example.restapi.dto.CredentialsDTO;
 import com.example.restapi.dto.UserDTO;
@@ -21,7 +20,6 @@ public class AuthService {
 		this.userRepository = userRepository;
 	}
 
-	@Transactional
 	public boolean register(UserDTO userDTO) {
 		if (userRepository.findByUsername(userDTO.getUsername()) == null) {
 			User user = new User(userDTO);
@@ -51,6 +49,10 @@ public class AuthService {
 			return true;
 		}
 		return false;
+	}
+
+	public static User getUserFromMap(String token) {
+		return tokenMap.get(token);
 	}
 	
 	private static synchronized String generateToken() {

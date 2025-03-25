@@ -1,7 +1,5 @@
 package com.example.restapi.dto;
 
-import jakarta.persistence.Entity;
-
 public class CredentialsDTO {
 	
 	private String username;
@@ -32,7 +30,4 @@ public class CredentialsDTO {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	
-	
-	
 }
