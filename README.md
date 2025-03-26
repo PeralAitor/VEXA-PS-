@@ -1,93 +1,98 @@
-SpringBoot + REST API + MySQL
-=============================
+VEXA
+====
 
-This example relies on the SpringBoot to create a REST API and connecting to a MySQL database using JPA, with a sample web application and a command line client.
+Una red social minimalista que permite a los usuarios registrarse, iniciar sesión y compartir publicaciones de solo texto. Su interfaz es sencilla e intuitiva, enfocada en la comunicación sin distracciones.
 
-The basic structure of a SpringBoot project can be initialized using *Spring initializr* at https://start.spring.io/.
+Ejecutar aplicación
+-------------------
 
-Launching the application
--------------------------
+Estos son los pasos a seguir para iniciar la aplicación desde cualquier ordenador.
 
-First, check all the required dependencies specified by the pom.xml file and the database configuration contained in *src/main/resources/application.properties* file.
+Lo primero, comprobar las dependencias requeridas del archivo pom.xml y la configuración de la base de datos escrita en el archivo *src/main/resources/application.properties*.
 
-Now, run the following command to check to download all dependencies and check that everything correctly compiles
+Para instalar todas las dependencias y comprobar que compila correctamente usaremos el siguiente comando:
 
-      mvn compile
+	mvn compile
 
-Make sure that the MySQL database was correctly configured before connecting the application to use it. 
-Use the contents of the file *src/main/resources/dbsetup.sql* to create the database, an specific user 'spq' (pass: 'spq') for the application and grant privileges to that user. If you are using the command line client for MySQL you could run the following command
+Debes asegurarte que la base de datos MySQL está bien configurada. Para ello usa el archivo *src/main/resources/dbsetup.sql* para crear la base de datos, un usuario ('spq') con contraseña ('spq') y dar privilegios a ese usuario. Si estás usando la línea de comandos debes ejecutar el siguiente comando:
 
-      mysql –uroot -p < src/main/resources/dbsetup.sql
+	mysql –uroot -p < src/main/resources/dbsetup.sql
 
-otherwise you could use the contents of the file in any other MySQL client you are using.
+Ahora, debes inicializar el servidor usando el siguiente comando:
 
-Now, launch the server using the following command
+	mvn spring-boot:run
 
-    mvn spring-boot:run
-
-If there are no errors, you should get a running web application serving its contents at http://localhost:8080/. You can press Ctrl+C to stop the running application.
+Si todo va bien y no tiene errores, podrás acceder a la aplicación web a través de la url [http://localhost:8080/](http://localhost:8080/). Puedes presionar Ctrl + C para parar la ejecución.
 
 REST API
 --------
 
-The application exposes a REST API, which is used by the web application, which is implemented in the BookController class. For example, some methods are
+Esta aplicación utiliza una REST API, la cual está implementada en las clases AuthController y VEXAController. Algunos metodos son los siguientes:
+Registra al usuario.
 
-Retrieves all the registered books
+	POST http://localhost:8080/auth/registration
+	Content-Type: application/json
+	
+	{
+		"username": "test",
+		"name": "Test",
+		"surnames": "Test Test"
+		"password": "123",
+		"age": 18
+	}
+	
+Iniciar sesión con un usuario.
 
-    GET http://localhost:8080/api/books
+	POST http://localhost:8080/auth/login
+	Content-Type: application/json
+	
+	{
+		"username": "test",
+		"password": "123"
+	}
+	
+Logout.
+	
+	POST http://localhost:8080/auth/logout
+	Content-Type: application/json
+	
+	{
+		"token": "4355gdfg5"
+	]
 
-Adds a new book to the database
+Crear un post.
 
-    POST http://localhost:8080/api/books
-    Content-Type: application/json
+	POST http://localhost:8080/vexa/post
+	Content-Type: application/json
+	
+	{
+		"content": "Hello, world!",
+		"token": "4355gdfg5"
+	]
 
-    {
-    "title": "Spring Boot in Action",
-    "author": "Craig Walls",
-    "isbn": "9781617292545"
-    }
+Obtener todos los posts.
 
-Removes a previously registered book
+	GET http://localhost:8080/vexa/posts
 
-    DELETE http://localhost:8080/api/books/1
-
-To see the full list of methods from the REST API, you can visit Swagger interface at: http://localhost:8080/swagger-ui.html. Check the annotations in the *BookController* class, the required dependencies in the *pom.xml* file and the *application.properties* file for its configuration
-
-Command line client
--------------------
-
-There is a sample REST API client implementation using the SpringBoot REST client libraries in class *BookManager.java*. You can launch the client using the following Maven command (check)
-
-    mvn exec:java
-
-See <build> section in *pom.xml* to see how this command was configured to work.
-
-Packaging the application
+Empaquetado de aplicación
 -------------------------
 
-Application can be packaged executing the following command
+Para empaquetar la aplicación debes usar el siguiente comando:
 
-    mvn package
+	mvn package
+	
+de esta manera se incluyen todas las librerias de SpringBoot que estén en *target/rest-api-0.0.1-SNAPSHOT.jar*, lo cual se puede distribuir.
 
-including all the SpringBoot required libraries inside the *target/rest-api-0.0.1-SNAPSHOT.jar*, which can be distributed.
+Una vez empaquetado, el servidor puede ser ejecutado con:
 
-Once packaged, the server can be launched with
+	java -jar rest-api-0.0.1-SNAPSHOT.jar
 
-    java -jar rest-api-0.0.1-SNAPSHOT.jar
+Referencias
+-----------
 
-and the sample client by running, as SpringBoot changes the way the default Java loader
-
-    java -cp rest-api-0.0.1-SNAPSHOT.jar -Dloader.main=com.example.restapi.client.BookManager org.springframework.boot.loader.launch.PropertiesLauncher localhost 8080
-
-Therefore, in a real development, it would be advisable to create different Maven projects for server and client applications, easing distribution and manteinance of each application separately.
-
-References
-----------
-
-* Very good explaination of the project: https://medium.com/@pratik.941/building-rest-api-using-spring-boot-a-comprehensive-guide-3e9b6d7a8951 
-* Building REST services with Spring: https://spring.io/guides/tutorials/rest
-* Good example documenting how to generate Swagger APIs in Spring Boot: https://bell-sw.com/blog/documenting-rest-api-with-swagger-in-spring-boot-3/#mcetoc_1heq9ft3o1v 
-* Docker example with Spring: https://medium.com/@yunuseulucay/end-to-end-spring-boot-with-mysql-and-docker-2c42a6e036c0
+* Hemos utilizado inteligencia artificial para ayudarnos con HTML, CSS, Thymeleaf y algo de código Java.
+* Se ha utilizado como referencia el proyecto hecho en la asignatura de Diseño del Software.
+* Como base para iniciar el proyecto se ha utilizado [esta estructura](https://alud.deusto.es/mod/resource/view.php?id=998978).
 
 
 
