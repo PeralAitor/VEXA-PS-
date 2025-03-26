@@ -12,9 +12,7 @@
     <!-- Header -->
     <header class="glass-navbar">
         <nav class="container d-flex justify-content-between align-items-center py-3">
-            <a href="/" class="logo-link">
-                <h1 class="logo">VEXA</h1>
-            </a>
+			<h1 class="logo">VEXA</h1>
             <a href="/registration" class="btn btn-primary">
                 <i class="fas fa-user-plus me-2"></i>Crear cuenta
             </a>
@@ -29,13 +27,13 @@
                 <p class="text-secondary">Accede a tu espacio personal</p>
             </div>
 
-            <!-- Formulario Login/Logout -->
+			<!-- Formulario Login/Logout -->
             <form th:if="${token != null}" th:action="@{/logout}" method="post" class="mb-4">
                 <button type="submit" class="btn btn-secondary w-100 py-2">
                     <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
                 </button>
             </form>
-
+			
             <form th:if="${token == null}" th:action="@{/login}" method="post">
                 <!-- Campos del formulario -->
                 <div class="form-group glass-input mb-4">

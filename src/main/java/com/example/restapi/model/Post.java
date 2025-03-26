@@ -1,5 +1,6 @@
 package com.example.restapi.model;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import com.example.restapi.dto.PostDTO;
@@ -69,6 +70,12 @@ public class Post {
 
     public void setDate(Date date) {
         this.date = date;
+    }
+    
+    public String getFormattedDate() {
+        if (date == null) return "Fecha no disponible"; // Evitar errores si la fecha es null
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        return sdf.format(date);
     }
 
     @Override

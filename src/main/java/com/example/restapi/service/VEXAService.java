@@ -31,8 +31,8 @@ public class VEXAService {
         return null;
     }
 
-    public List<Post> getPosts(TokenDTO tokenDTO) {
-        if (AuthService.getUserFromMap(tokenDTO.getToken()) == null) {
+    public List<Post> getPosts(String token) {
+        if (AuthService.getUserFromMap(token) == null) {
             return null;
         }
         List<Post> posts = postRepository.findAll();
