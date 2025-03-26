@@ -1,5 +1,7 @@
 package com.example.restapi.client;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -12,6 +14,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.example.restapi.dto.PostDTO;
+import com.example.restapi.model.Post;
 import com.example.restapi.model.User;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +23,7 @@ import jakarta.servlet.http.HttpServletRequest;
 public class UserManager {
 
 	private final String USER_CONTROLLER_URL;
+	private final String POST_CONTROLLER_URL;
 	private final RestTemplate restTemplate;
 	private String token;
 
@@ -26,6 +31,7 @@ public class UserManager {
 
 	public UserManager() {
 		USER_CONTROLLER_URL = "http://localhost:8080/auth";
+		POST_CONTROLLER_URL = "http://localhost:8080/vexa";
 		this.restTemplate = new RestTemplate();
 	}
 
@@ -62,21 +68,27 @@ public class UserManager {
 
 	@GetMapping("/login")
 	public String showLoginForm(Model model) {
-		System.out.println("Debugging");
 		return "login";
 	}
 
 	@PostMapping("/login")
 	public String login(@RequestParam String username, @RequestParam String password, Model model) {
-		User user = new User(username, password);
-		token = login(user);
-		if (token != null) {
-			model.addAttribute("token", token);
-			model.addAttribute("successMessage", "User logged in successfully");
-		} else {
-			model.addAttribute("errorMessage", "User not found");
-		}
-		return "login";
+	    User user = new User(username, password);
+	    
+	    token = login(user);
+	    
+	    if (token != null) {
+	        model.addAttribute("token", token);
+	        model.addAttribute("successMessage", "User logged in successfully");
+	        
+	        List<Post> posts = getPosts(token);
+	        model.addAttribute("posts", posts);
+	        
+	        return "posts";
+	    } else {
+	        model.addAttribute("errorMessage", "User not found");
+	        return "login";
+	    }
 	}
 	
 	@PostMapping("/logout")
@@ -88,8 +100,40 @@ public class UserManager {
 		} else {
 			model.addAttribute("errorMessage", "User not found");
 		}
-		return "login";
+		return "index";
 	}
+	
+	@GetMapping("/posts")
+	public String getPosts(Model model) {
+		if (token != null) {
+			List<Post> posts = getPosts(token);
+	        model.addAttribute("posts", posts);	
+		}
+	    return "posts";
+	}
+	
+	@GetMapping("/post") 
+	public String post(Model model) {
+		return "post";
+	}
+	
+	@PostMapping("/post")
+	public String createPost(@RequestParam String content, Model model) {
+		if (token != null) {
+			PostDTO postDTO = new PostDTO(content, token);
+			Post post = createPost(postDTO);
+			
+			if (post != null) {
+				model.addAttribute("successMessage", "Post created successfully");
+			} else {
+				model.addAttribute("errorMessage", "Post not created");
+			}
+			
+			return "post";
+		}
+		return "index";
+	}
+
 
 	// A partir de aquí son las funciones que podríamos poner en el Service del lado del cliente
 	public boolean register(User user) {
@@ -128,6 +172,37 @@ public class UserManager {
 		} catch (HttpClientErrorException ex) {
 			if (ex.getStatusCode() == HttpStatus.UNAUTHORIZED) {
 				return false;
+			} else {
+				throw ex;
+			}
+		}
+	}
+	
+	public List<Post> getPosts(String token) {
+		try {
+			String url = POST_CONTROLLER_URL.concat("/posts?token=").concat(token);
+			
+			List<Post> listPosts = restTemplate.getForObject(url, List.class);
+			System.out.println(listPosts);
+			return listPosts;
+			
+		} catch (HttpClientErrorException ex) {
+			if (ex.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+				return null;
+			} else {
+				throw ex;
+			}
+		}
+	}
+	
+	public Post createPost(PostDTO postDTO) {
+		try {
+			String url = POST_CONTROLLER_URL.concat("/post");
+			ResponseEntity<Post> response = restTemplate.postForEntity(url, postDTO, Post.class);
+			return response.getBody();
+		} catch (HttpClientErrorException ex) {
+			if (ex.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+				return null;
 			} else {
 				throw ex;
 			}

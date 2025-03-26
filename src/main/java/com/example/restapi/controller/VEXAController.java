@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.restapi.dto.PostDTO;
@@ -37,8 +38,8 @@ public class VEXAController {
     }
 
     @GetMapping("/posts")
-    public ResponseEntity<List<Post>> getPosts(@RequestBody TokenDTO tokenDTO) {
-        List<Post> response = vexaService.getPosts(tokenDTO);
+    public ResponseEntity<List<Post>> getPosts(@RequestParam String token) {
+        List<Post> response = vexaService.getPosts(token);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
