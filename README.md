@@ -28,7 +28,7 @@ REST API
 --------
 
 Esta aplicación utiliza una REST API, la cual está implementada en las clases AuthController y VEXAController. Algunos metodos son los siguientes:
-Registra al usuario.
+Registrar al usuario.
 
 	POST http://localhost:8080/auth/registration
 	Content-Type: application/json
