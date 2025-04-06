@@ -33,6 +33,21 @@
 		<server.port>8080</server.port>
 	</properties>
 	<dependencies>
+	
+		<!-- JUnit5	-->
+		<dependency>
+		    <groupId>org.junit.jupiter</groupId>
+		    <artifactId>junit-jupiter-api</artifactId>
+		    <version>5.11.4</version>
+		    <scope>test</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.junit.jupiter</groupId>
+		    <artifactId>junit-jupiter-engine</artifactId>
+		    <version>5.11.4</version>
+		    <scope>test</scope>
+		</dependency>
+	
 		<!-- Spring Boot Starter Data JPA (includes Hibernate) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
