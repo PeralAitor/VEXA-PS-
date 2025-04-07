@@ -65,6 +65,7 @@ public class PostTest {
 	
 	@Test
 	public void getDateTest() {
+		p1.setDate(new Date());
 		assertEquals(new Date(), p1.getDate());
 	}
 	
