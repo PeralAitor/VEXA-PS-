@@ -112,6 +112,15 @@ public class UserManager {
 	    return "posts";
 	}
 	
+	@GetMapping("/posts/owner")
+	public String getPostsOwner(Model model) {
+		if (token != null) {
+			List<Post> posts = getPostsOwner(token);
+	        model.addAttribute("posts", posts);	
+		}
+	    return "posts";
+	}
+	
 	@GetMapping("/post") 
 	public String post(Model model) {
 		return "post";
@@ -183,7 +192,22 @@ public class UserManager {
 			String url = POST_CONTROLLER_URL.concat("/posts?token=").concat(token);
 			
 			List<Post> listPosts = restTemplate.getForObject(url, List.class);
-			System.out.println(listPosts);
+			return listPosts;
+			
+		} catch (HttpClientErrorException ex) {
+			if (ex.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+				return null;
+			} else {
+				throw ex;
+			}
+		}
+	}
+	
+	public List<Post> getPostsOwner(String token) {
+		try {
+			String url = POST_CONTROLLER_URL.concat("/posts/user?token=").concat(token);
+			
+			List<Post> listPosts = restTemplate.getForObject(url, List.class);
 			return listPosts;
 			
 		} catch (HttpClientErrorException ex) {

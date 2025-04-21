@@ -10,6 +10,6 @@ import com.example.restapi.model.User;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
-    List<Post> findByOwner(User owner);
+    List<Post> findByOwner(String owner);
     
 }

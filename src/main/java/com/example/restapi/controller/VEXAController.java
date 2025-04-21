@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.restapi.dto.PostDTO;
 import com.example.restapi.dto.TokenDTO;
 import com.example.restapi.model.Post;
+import com.example.restapi.repository.PostRepository;
 import com.example.restapi.service.AuthService;
 import com.example.restapi.service.VEXAService;
 
@@ -23,9 +24,11 @@ import com.example.restapi.service.VEXAService;
 public class VEXAController {
 
     private final VEXAService vexaService;
+    private final PostRepository postRepository;
 
-    public VEXAController(VEXAService vexaService) {
+    public VEXAController(VEXAService vexaService,PostRepository postRepository) {
         this.vexaService = vexaService;
+        this.postRepository = postRepository;
     }
 
     @PostMapping("/post")
@@ -42,4 +45,13 @@ public class VEXAController {
         List<Post> response = vexaService.getPosts(token);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+    	
+    @GetMapping("/posts/user")
+    public ResponseEntity<List<Post>> getPostsByUser(@RequestParam String token) {
+    	
+        List<Post> response = vexaService.getPostsByUser(token);
+        System.out.println("Response: " + response);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+    
 }

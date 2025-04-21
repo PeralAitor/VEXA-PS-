@@ -1,5 +1,6 @@
 package com.example.restapi.service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -39,4 +40,16 @@ public class VEXAService {
         posts.sort(Comparator.comparing(Post::getDate).reversed());
         return posts;
     }
+    
+    public List<Post> getPostsByUser(String token) {
+        if (isValidToken(token)) {
+        	System.out.println("se ejecuta\n");
+            return postRepository.findByOwner(AuthService.getUserFromMap(token).getUsername());
+        }
+        return null;
+    }
+
+	private boolean isValidToken(String token) {
+		return AuthService.getUserFromMap(token) != null;
+	}
 }
