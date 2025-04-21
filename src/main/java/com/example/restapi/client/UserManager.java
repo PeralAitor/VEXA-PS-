@@ -17,6 +17,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.example.restapi.dto.PostDTO;
 import com.example.restapi.model.Post;
 import com.example.restapi.model.User;
+import com.example.restapi.service.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
 @Controller
@@ -116,9 +117,10 @@ public class UserManager {
 	public String getPostsOwner(Model model) {
 		if (token != null) {
 			List<Post> posts = getPostsOwner(token);
-	        model.addAttribute("posts", posts);	
+	        model.addAttribute("posts", posts);
+	        model.addAttribute("user", AuthService.getUserFromMap(token));
 		}
-	    return "posts";
+	    return "postsUser";
 	}
 	
 	@GetMapping("/post") 

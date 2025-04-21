@@ -48,7 +48,6 @@ public class VEXAController {
     	
     @GetMapping("/posts/user")
     public ResponseEntity<List<Post>> getPostsByUser(@RequestParam String token) {
-    	
         List<Post> response = vexaService.getPostsByUser(token);
         System.out.println("Response: " + response);
         return new ResponseEntity<>(response, HttpStatus.OK);
