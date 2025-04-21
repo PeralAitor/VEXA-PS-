@@ -53,7 +53,6 @@ public class AuthService {
 
 	public static User getUserFromMap(String token) {
 		User user = tokenMap.get(token);
-		System.out.println("Token: " + token + ", User: " + user);
 		return user;
 	}
 	

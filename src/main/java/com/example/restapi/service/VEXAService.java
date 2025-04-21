@@ -3,6 +3,7 @@ package com.example.restapi.service;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -43,7 +44,6 @@ public class VEXAService {
     
     public List<Post> getPostsByUser(String token) {
         if (isValidToken(token)) {
-        	System.out.println("se ejecuta\n");
             return postRepository.findByOwner(AuthService.getUserFromMap(token).getUsername());
         }
         return null;
@@ -51,5 +51,9 @@ public class VEXAService {
 
 	private boolean isValidToken(String token) {
 		return AuthService.getUserFromMap(token) != null;
+	}
+	
+	public Post updatePost(Post postDTO) {
+		return postRepository.save(postDTO);
 	}
 }

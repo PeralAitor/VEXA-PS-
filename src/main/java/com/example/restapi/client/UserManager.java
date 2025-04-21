@@ -2,6 +2,8 @@ package com.example.restapi.client;
 
 import java.util.List;
 
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -9,6 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -144,6 +147,52 @@ public class UserManager {
 		}
 		return "index";
 	}
+	
+	@GetMapping("/post/update")
+	public String updatePost(@RequestParam Long id, Model model) {
+	    if (token != null) {
+	        List<Post> posts = getPostsOwner(token);
+	        Post post = posts.stream()
+	        		.filter(p -> p.getId() == id)
+	        	    .findFirst()
+	        	    .orElse(null);
+	        if (post != null) {
+	        	System.out.println("NO ES NULL: " + post.getId() + " " + post.getContent() + " " );
+	            model.addAttribute("post", post);
+	            model.addAttribute("id", post.getId());
+	            return "editPost";
+	        }
+	    }
+	    return "index";
+	}
+
+
+	@PostMapping("/update/post")
+	public String updatePost(@RequestParam Long id, @RequestParam String content, Model model) {
+	    if (token != null) {
+	    	System.out.println("ID: " + id + " Content: " + content + " Token: " + token);
+	    	List<Post> posts = getPostsOwner(token);
+	    	Post post = posts.stream()
+	    		    .filter(p -> p.getId() == id)
+	    		    .findFirst()
+	    		    .orElse(null);
+	    	System.out.println("POST: " + post.getId() + " " + post.getContent() + " " );
+	        if (post != null) {
+	            post.setContent(content);
+	            Post updatedPost = updatePost(post); // actualizas como ya lo haces
+
+	            if (updatedPost != null) {
+	                model.addAttribute("successMessage", "Post actualizado exitosamente");
+	            } else {
+	                model.addAttribute("errorMessage", "Error al actualizar el post");
+	            }
+
+	            model.addAttribute("post", updatedPost);
+	            return "editPost";
+	        }
+	    }
+	    return "index";
+	}
 
 
 	// A partir de aquí son las funciones que podríamos poner en el Service del lado del cliente
@@ -174,6 +223,8 @@ public class UserManager {
 			}
 		}
 	}
+
+	
 	
 	public boolean logout(String token) {
 		try {
@@ -206,12 +257,32 @@ public class UserManager {
 	}
 	
 	public List<Post> getPostsOwner(String token) {
+	    try {
+	        String url = POST_CONTROLLER_URL.concat("/posts/user?token=").concat(token);
+
+	        ResponseEntity<List<Post>> response = restTemplate.exchange(
+	            url,
+	            HttpMethod.GET,
+	            null,
+	            new ParameterizedTypeReference<List<Post>>() {}
+	        );
+
+	        return response.getBody();
+
+	    } catch (HttpClientErrorException ex) {
+	        if (ex.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+	            return null;
+	        } else {
+	            throw ex;
+	        }
+	    }
+	}
+	
+	public Post createPost(PostDTO postDTO) {
 		try {
-			String url = POST_CONTROLLER_URL.concat("/posts/user?token=").concat(token);
-			
-			List<Post> listPosts = restTemplate.getForObject(url, List.class);
-			return listPosts;
-			
+			String url = POST_CONTROLLER_URL.concat("/post");
+			ResponseEntity<Post> response = restTemplate.postForEntity(url, postDTO, Post.class);
+			return response.getBody();
 		} catch (HttpClientErrorException ex) {
 			if (ex.getStatusCode() == HttpStatus.UNAUTHORIZED) {
 				return null;
@@ -221,7 +292,7 @@ public class UserManager {
 		}
 	}
 	
-	public Post createPost(PostDTO postDTO) {
+	public Post updatePost(Post postDTO) {
 		try {
 			String url = POST_CONTROLLER_URL.concat("/post");
 			ResponseEntity<Post> response = restTemplate.postForEntity(url, postDTO, Post.class);
