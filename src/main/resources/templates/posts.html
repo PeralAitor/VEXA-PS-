@@ -17,9 +17,9 @@
 			        <i class="fas fa-plus me-2"></i>Crear Post
 			    </a>
 				<form th:if="${token != null}" th:action="@{/posts/owner}" method="get">
-						        <button type="submit" class="btn btn-secondary">
-						            <i class="fas fa-sign-out-alt me-2"></i>Mi perfil
-						        </button>
+			        <button type="submit" class="btn btn-secondary">
+						<i class="fas fa-user me-2"></i>Mi perfil
+			        </button>
 				</form>
 			    <form th:if="${token != null}" th:action="@{/logout}" method="post">
 			        <button type="submit" class="btn btn-secondary">

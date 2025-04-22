@@ -14,6 +14,31 @@
             z-index: 1;
             gap: 5px;
         }
+        .glass-user-info {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .glass-user-info i {
+            color: #0d6efd;
+        }
+        .glass-user-info h4 {
+            color: white;
+        }
+        .glass-user-info p {
+            color: #cccccc;
+            margin-bottom: 0.4rem;
+        }
+        .icon-wrapper {
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body>
@@ -27,7 +52,7 @@
                 </a>
                 <form th:if="${token != null}" th:action="@{/posts}" method="get">
                     <button type="submit" class="btn btn-secondary">
-                        <i class="fas fa-sign-out-alt me-2"></i>Publicaciones
+						<i class="fas fa-file-alt me-2"></i>Publicaciones
                     </button>
                 </form>
                 <form th:if="${token != null}" th:action="@{/logout}" method="post">
@@ -42,8 +67,28 @@
     <!-- Contenido principal -->
     <main class="container mt-5 mb-5">
         <div class="glass-container">
+
             <h2 class="mb-4 gradient-text" th:text="'Bienvenido, ' + ${user.username}">Bienvenido, usuario</h2>
-            
+
+            <!-- Información del usuario -->
+            <div class="glass-user-info">
+                <div class="icon-wrapper">
+                    <i class="fas fa-user-circle fa-4x text-primary"></i>
+                </div>
+                <div>
+                    <h4 class="mb-1 fw-semibold" th:text="${user.name + ' ' + user.surnames}">Nombre completo</h4>
+                    <p>
+                        <i class="fas fa-user me-2"></i><span th:text="'@' + ${user.username}">@usuario</span>
+                    </p>
+                    <p>
+                        <i class="fas fa-birthday-cake me-2"></i><span th:text="${user.age}">20</span> años
+                    </p>
+                    <p>
+                        <i class="fas fa-pen me-2"></i><span th:text="${#lists.size(posts)}">0</span> publicaciones creadas
+                    </p>
+                </div>
+            </div>
+
             <div th:if="${posts == null or #lists.isEmpty(posts)}" class="text-center py-5">
                 <i class="fas fa-comment-slash fa-3x mb-3 text-muted"></i>
                 <p class="text-secondary">No hay posts disponibles.</p>
@@ -52,14 +97,12 @@
             <div th:each="post, stat : ${posts}" 
                  class="post-card mb-4 position-relative" 
                  th:style="'--post-color: hsl(' + (${stat.index} * 70) + ', 70%, 65%);'">
-                 
+
                 <!-- Botones de Acción (solo aparecen con hover) -->
                 <div class="action-btns position-absolute top-0 end-0 m-2 d-none">
-                    <a th:href="@{/post/update(id=${post.id})}" 
-                       class="btn btn-sm btn-outline-primary">
-                       <i class="fas fa-edit"></i>
+                    <a th:href="@{/post/update(id=${post.id})}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-edit"></i>
                     </a>
-                    
                     <form th:action="@{/post/delete}" method="post">
                         <input type="hidden" name="id" th:value="${post.id}" />
                         <button type="submit" class="btn btn-sm btn-outline-danger">
@@ -73,12 +116,12 @@
                         <i class="fas fa-user-circle fa-2x"></i>
                     </div>
                     <div>
-                        <h5 class="post-owner mb-0" th:text="${post.owner}"></h5>
-                        <small class="post-date" th:text="${post.formattedDate}"></small>
+                        <h5 class="post-owner mb-0" th:text="${post.owner}">Usuario</h5>
+                        <small class="post-date" th:text="${post.formattedDate}">Fecha</small>
                     </div>
                 </div>
                 <div class="post-content">
-                    <p th:text="${post.content}" class="mb-0"></p>
+                    <p th:text="${post.content}" class="mb-0">Contenido del post</p>
                 </div>
             </div>
         </div>
