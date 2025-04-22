@@ -53,7 +53,7 @@ public class VEXAController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
     
-    @PutMapping("/post")
+    @PostMapping("/post/update")
     public ResponseEntity<Post> updatePost(@RequestBody Post postDTO) {
         Post updatedPost = vexaService.updatePost(postDTO);
         if (updatedPost != null) {

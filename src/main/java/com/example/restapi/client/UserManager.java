@@ -157,7 +157,6 @@ public class UserManager {
 	        	    .findFirst()
 	        	    .orElse(null);
 	        if (post != null) {
-	        	System.out.println("NO ES NULL: " + post.getId() + " " + post.getContent() + " " );
 	            model.addAttribute("post", post);
 	            model.addAttribute("id", post.getId());
 	            return "editPost";
@@ -170,25 +169,17 @@ public class UserManager {
 	@PostMapping("/update/post")
 	public String updatePost(@RequestParam Long id, @RequestParam String content, Model model) {
 	    if (token != null) {
-	    	System.out.println("ID: " + id + " Content: " + content + " Token: " + token);
 	    	List<Post> posts = getPostsOwner(token);
 	    	Post post = posts.stream()
 	    		    .filter(p -> p.getId() == id)
 	    		    .findFirst()
 	    		    .orElse(null);
-	    	System.out.println("POST: " + post.getId() + " " + post.getContent() + " " );
 	        if (post != null) {
-	            post.setContent(content);
-	            Post updatedPost = updatePost(post); // actualizas como ya lo haces
-
-	            if (updatedPost != null) {
-	                model.addAttribute("successMessage", "Post actualizado exitosamente");
-	            } else {
-	                model.addAttribute("errorMessage", "Error al actualizar el post");
-	            }
-
-	            model.addAttribute("post", updatedPost);
-	            return "editPost";
+	            post.setContent(content);            
+	            posts = getPostsOwner(token);
+		        model.addAttribute("posts", posts);
+		        model.addAttribute("user", AuthService.getUserFromMap(token));
+	            return "postsUser";
 	        }
 	    }
 	    return "index";
@@ -294,7 +285,7 @@ public class UserManager {
 	
 	public Post updatePost(Post postDTO) {
 		try {
-			String url = POST_CONTROLLER_URL.concat("/post");
+			String url = POST_CONTROLLER_URL.concat("/post/update");
 			ResponseEntity<Post> response = restTemplate.postForEntity(url, postDTO, Post.class);
 			return response.getBody();
 		} catch (HttpClientErrorException ex) {
