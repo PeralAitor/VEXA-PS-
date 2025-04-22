@@ -13,6 +13,8 @@ import com.example.restapi.model.Post;
 import com.example.restapi.model.User;
 import com.example.restapi.repository.PostRepository;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class VEXAService {
 
@@ -55,5 +57,14 @@ public class VEXAService {
 	
 	public Post updatePost(Post postDTO) {
 		return postRepository.save(postDTO);
+	}
+
+	
+	public Boolean deletePost(Post postDTO) {
+	    if (postRepository.existsById(postDTO.getId())) {
+	        postRepository.deleteById(postDTO.getId());
+	        return true;
+	    }
+	    return false;
 	}
 }

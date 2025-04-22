@@ -62,4 +62,13 @@ public class VEXAController {
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
     
+    @PostMapping("/post/delete")
+    public ResponseEntity<Boolean> deletePost(@RequestBody Post postDTO) {
+    	Boolean response = vexaService.deletePost(postDTO);
+    	if(response == true) {
+    		return new ResponseEntity<Boolean>(response, HttpStatus.OK);
+    	}
+    	return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
+    
 }

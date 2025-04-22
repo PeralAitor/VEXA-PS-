@@ -12,4 +12,5 @@ import com.example.restapi.model.Post;
 public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findByOwner(String owner);
     Optional<Post> findById(Long id);
+    void deleteById(Long id);
 }
