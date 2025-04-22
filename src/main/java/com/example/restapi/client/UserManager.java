@@ -188,7 +188,20 @@ public class UserManager {
 	    }
 	    return "index";
 	}
-
+	
+	@PostMapping("/post/delete")
+	public String deletePost(@RequestParam Long id, Model model) {
+	    if (token != null) {
+	        Post post = new Post();
+	        post.setId(id);
+	        deletePost(post);
+	        List<Post> posts = getPostsOwner(token);
+	        model.addAttribute("posts", posts);
+	        model.addAttribute("user", AuthService.getUserFromMap(token));
+	        return "postsUser";
+	    }
+	    return "index";
+	}
 
 	// A partir de aquí son las funciones que podríamos poner en el Service del lado del cliente
 	public boolean register(User user) {
@@ -299,5 +312,19 @@ public class UserManager {
 				throw ex;
 			}
 		}
+	}
+	
+	public boolean deletePost(Post postDTO) {
+	    try {
+	        String url = POST_CONTROLLER_URL.concat("/post/delete");
+	        ResponseEntity<Boolean> response = restTemplate.postForEntity(url, postDTO, Boolean.class);
+	        return response.getBody();
+	    } catch (HttpClientErrorException ex) {
+	        if (ex.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+	            return false;
+	        } else {
+	            throw ex;
+	        }
+	    }
 	}
 }
