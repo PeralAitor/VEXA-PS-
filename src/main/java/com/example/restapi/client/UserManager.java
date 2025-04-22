@@ -157,6 +157,7 @@ public class UserManager {
 	        	    .findFirst()
 	        	    .orElse(null);
 	        if (post != null) {
+	        	System.out.println("NO ES NULL: " + post.getId() + " " + post.getContent() + " " );
 	            model.addAttribute("post", post);
 	            model.addAttribute("id", post.getId());
 	            return "editPost";
@@ -169,13 +170,16 @@ public class UserManager {
 	@PostMapping("/update/post")
 	public String updatePost(@RequestParam Long id, @RequestParam String content, Model model) {
 	    if (token != null) {
+	    	
 	    	List<Post> posts = getPostsOwner(token);
 	    	Post post = posts.stream()
 	    		    .filter(p -> p.getId() == id)
 	    		    .findFirst()
 	    		    .orElse(null);
+	    	System.out.println("POST: " + post.getId() + " " + post.getContent() + " " );
 	        if (post != null) {
-	            post.setContent(content);            
+	            post.setContent(content);
+	            updatePost(post);
 	            posts = getPostsOwner(token);
 		        model.addAttribute("posts", posts);
 		        model.addAttribute("user", AuthService.getUserFromMap(token));
