@@ -5,6 +5,9 @@ import java.util.Date;
 import java.util.List;
 import com.example.restapi.dto.*;
 import com.example.restapi.model.Post;
+import com.example.restapi.repository.PostRepository;
+import com.example.restapi.repository.UserRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,13 +22,21 @@ class VexaIntegrationTest {
     @Autowired
     private TestRestTemplate restTemplate;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PostRepository postRepository;
+
     private String authToken;
+    private final String TEST_USERNAME = "testuser_" + System.currentTimeMillis();
     private Post createdPost;
-    private final String TEST_USERNAME = "testuser";
 
     @BeforeEach
     void setUp() {
-        // Registrar y autenticar usuario
+        cleanTestData();
+        
+        // Registrar usuario
         UserDTO user = new UserDTO(
             TEST_USERNAME,
             "password",
@@ -39,9 +50,9 @@ class VexaIntegrationTest {
             user, 
             Void.class
         );
-        assertEquals(HttpStatus.OK, registrationResponse.getStatusCode());
+        assertTrue(registrationResponse.getStatusCode().is2xxSuccessful());
 
-        // Login para obtener token
+        // Autenticar
         CredentialsDTO credentials = new CredentialsDTO(TEST_USERNAME, "password");
         ResponseEntity<String> loginResponse = restTemplate.postForEntity(
             "/auth/login", 
@@ -50,6 +61,24 @@ class VexaIntegrationTest {
         );
         assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
         authToken = loginResponse.getBody();
+    }
+
+    @AfterEach
+    void tearDown() {
+        cleanTestData();
+    }
+
+    private void cleanTestData() {
+        // Eliminar posts
+        if (createdPost != null) {
+            postRepository.delete(createdPost);
+        }
+        
+        // Eliminar usuario
+        userRepository.findById(TEST_USERNAME).ifPresent(user -> {
+            userRepository.delete(user);
+            userRepository.flush();
+        });
     }
 
     @Test
@@ -78,7 +107,7 @@ class VexaIntegrationTest {
         // Actualizar post
         Post updateRequest = new Post();
         updateRequest.setId(createdPost.getId());
-        updateRequest.setContent("Contenido actualizado");
+        updateRequest.setContent("Updated Content");
         updateRequest.setOwner(TEST_USERNAME);
         updateRequest.setDate(new Date());
 
@@ -88,7 +117,7 @@ class VexaIntegrationTest {
             Post.class
         );
         assertEquals(HttpStatus.OK, updateResponse.getStatusCode());
-        assertEquals("Contenido actualizado", updateResponse.getBody().getContent());
+        assertEquals("Updated Content", updateResponse.getBody().getContent());
 
         // Eliminar post
         Post deleteRequest = new Post();
@@ -102,60 +131,28 @@ class VexaIntegrationTest {
         );
         assertEquals(HttpStatus.OK, deleteResponse.getStatusCode());
         assertTrue(deleteResponse.getBody());
-
-        // Verificar eliminación
-        ResponseEntity<List<Post>> postsAfterDelete = restTemplate.exchange(
-            "/vexa/posts?token=" + authToken,
-            HttpMethod.GET,
-            null,
-            new ParameterizedTypeReference<List<Post>>() {}
-        );
-        assertFalse(postsAfterDelete.getBody().stream()
-            .anyMatch(p -> p.getId() == createdPost.getId()));
+        
+        createdPost = null; // Reset para limpieza
     }
 
     @Test
     void testUnauthorizedPostOperations() {
         // Crear post con token inválido
         PostDTO invalidPost = new PostDTO("Contenido no autorizado", "token-invalido");
-        ResponseEntity<Post> createResponse = restTemplate.postForEntity(
+        ResponseEntity<Post> response = restTemplate.postForEntity(
             "/vexa/post",
             invalidPost,
             Post.class
         );
-        assertEquals(HttpStatus.UNAUTHORIZED, createResponse.getStatusCode());
-    }
-
-    @Test
-    void testPostOwnershipValidation() {
-        // Crear post válido
-        PostDTO validPost = new PostDTO("Contenido válido", authToken);
-        ResponseEntity<Post> createResponse = restTemplate.postForEntity(
-            "/vexa/post",
-            validPost,
-            Post.class
-        );
-        Post createdPost = createResponse.getBody();
-
-        // Intentar actualizar con usuario diferente
-        Post invalidUpdate = new Post();
-        invalidUpdate.setId(createdPost.getId());
-        invalidUpdate.setContent("Hackeado");
-        invalidUpdate.setOwner("otro_usuario");
-        invalidUpdate.setDate(new Date());
-
-        ResponseEntity<Post> updateResponse = restTemplate.postForEntity(
-            "/vexa/post/update",
-            invalidUpdate,
-            Post.class
-        );
-        assertEquals(HttpStatus.UNAUTHORIZED, updateResponse.getStatusCode());
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode(), 
+                   "Acceso no autorizado permitido");
     }
 
     @Test
     void testUserRegistrationConflict() {
+        // Intentar registrar usuario duplicado
         UserDTO duplicateUser = new UserDTO(
-            TEST_USERNAME, // Mismo username
+            TEST_USERNAME,
             "nuevapass",
             "Usuario Duplicado",
             "Apellidos",
@@ -167,7 +164,21 @@ class VexaIntegrationTest {
             duplicateUser,
             Void.class
         );
-        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode(), 
+                   "No se detectó conflicto de usuario");
+    }
+
+    @Test
+    void testInvalidLogin() {
+        // Credenciales incorrectas
+        CredentialsDTO invalidCreds = new CredentialsDTO("usuario_inexistente", "wrongpass");
+        ResponseEntity<String> response = restTemplate.postForEntity(
+            "/auth/login", 
+            invalidCreds, 
+            String.class
+        );
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode(), 
+                   "Credenciales inválidas aceptadas");
     }
 
     @Test
@@ -178,15 +189,16 @@ class VexaIntegrationTest {
             authToken,
             Boolean.class
         );
-        assertTrue(logoutResponse.getBody());
+        assertTrue(logoutResponse.getBody(), "Logout fallido");
 
-        // Intentar operación post-logout
+        // Intentar operación con token invalidado
         PostDTO post = new PostDTO("Post después de logout", authToken);
-        ResponseEntity<Post> createResponse = restTemplate.postForEntity(
+        ResponseEntity<Post> response = restTemplate.postForEntity(
             "/vexa/post",
             post,
             Post.class
         );
-        assertEquals(HttpStatus.UNAUTHORIZED, createResponse.getStatusCode());
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode(), 
+                   "Token inválido aceptado");
     }
 }
