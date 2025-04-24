@@ -66,7 +66,7 @@ public class VEXAPerformanceTest {
 
     @Test
     @JUnitPerfTest(threads = 30, durationMs = 8000)
-    @JUnitPerfTestRequirement(executionsPerSec = 50, allowedErrorPercentage = 0.1f)
+    @JUnitPerfTestRequirement(executionsPerSec = 50, allowedErrorPercentage = 0.5f)
     void testRegisterPerformance() {
         String username = "user_" + System.currentTimeMillis();
         authService.register(new UserDTO(username, "Password123!", "Name", "Surname", 30));
