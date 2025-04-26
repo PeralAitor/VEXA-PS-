@@ -58,7 +58,7 @@ Logout.
 	
 	{
 		"token": "4355gdfg5"
-	]
+	}
 
 Crear un post.
 
@@ -68,11 +68,35 @@ Crear un post.
 	{
 		"content": "Hello, world!",
 		"token": "4355gdfg5"
-	]
+	}
 
 Obtener todos los posts.
 
 	GET http://localhost:8080/vexa/posts
+	
+Actualizar un post.
+	
+	POST http://localhost:8080/vexa/post/update
+	Content-Type: application/json
+	
+	{
+		"id": 1,
+		"owner": "test",
+		"content": "Hello, world!",
+		"date": "2025-4-1 3:00 PM GMT+1:00"
+	}
+	
+Eliminar un post.
+
+	POST http://localhost:8080/vexa/post/delete
+	Content-Type: application/json
+	
+	{
+		"id": 1,
+		"owner": "test",
+		"content": "Hello, world!",
+		"date": "2025-4-1 3:00 PM GMT+1:00"
+	}
 
 Empaquetado de aplicación
 -------------------------
@@ -86,6 +110,22 @@ de esta manera se incluyen todas las librerias de SpringBoot que estén en *targ
 Una vez empaquetado, el servidor puede ser ejecutado con:
 
 	java -jar rest-api-0.0.1-SNAPSHOT.jar
+
+Ejecución de tests
+------------------
+
+Para ejecutar los tests del proyecto se deben usar los siguientes 3 comandos:
+
+	mvn test
+	mvn test -Pintegration
+	mvn test -Pperformance
+	
+El comando *mvn test* se utiliza para ejecutar los test unitarios, el comando *mvn test -Pintegration* se utiliza para ejecutar los test de integración, y el comando *mvn test -Pperformance* se utiliza para ejecutar los test de rendimiento.
+Además, al ejecutar el comando *mvn test* se generará un *index.html* en la ruta *target/site/index.html* donde se puede ver el porcentaje cubierto por test unitarios del proyecto, desglosado por diferentes paquetes.
+
+Para comprobar que los test unitarios cubren más del 90% del proyecto se debe utilizar el siguiente comando:
+
+	mvn verify
 
 Referencias
 -----------

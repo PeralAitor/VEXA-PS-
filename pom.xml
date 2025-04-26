@@ -137,11 +137,6 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.version}</version>
-                <configuration>
-                    <excludes>
-                        <exclude>com/example/restapi/RestApiApplication.class</exclude>
-                    </excludes>
-                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -168,16 +163,11 @@
                                         <limit>
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.25</minimum>
+                                            <minimum>0.9</minimum>
                                         </limit>
                                     </limits>
                                 </rule>
                             </rules>
-                            <excludes>
-                                <exclude>com/example/restapi/config/**</exclude>
-                                <exclude>com/example/restapi/controller/**</exclude>
-                                <exclude>com/example/restapi/RestApiApplication*.*</exclude>
-                            </excludes>
                         </configuration>
                     </execution>
                 </executions>
