@@ -685,4 +685,23 @@ class UserManagerTest {
         verify(model).addAttribute(eq("currentUrl"), anyString());
         verify(model).addAttribute(eq("token"), any());
     }
+    @Test
+    void testGetPosts_HttpClientErrorExceptionOtherStatus_ThrowsException() {
+        when(restTemplate.getForObject(anyString(), eq(List.class)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.FORBIDDEN));
+
+        assertThrows(HttpClientErrorException.class, () -> userManager.getPosts("token"));
+    }
+
+    @Test
+    void testGetPostsOwner_HttpClientErrorExceptionOtherStatus_ThrowsException() {
+        when(restTemplate.exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.FORBIDDEN));
+
+        assertThrows(HttpClientErrorException.class, () -> userManager.getPostsOwner("token"));
+    }
 }
