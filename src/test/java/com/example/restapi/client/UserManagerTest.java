@@ -1,15 +1,20 @@
 package com.example.restapi.client;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -17,691 +22,541 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.ui.Model;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.example.restapi.dto.PostDTO;
 import com.example.restapi.model.Post;
 import com.example.restapi.model.User;
+import com.example.restapi.service.AuthService;
 
+import jakarta.servlet.http.HttpServletRequest;
+
+@ExtendWith(MockitoExtension.class)
 class UserManagerTest {
 
-    private UserManager userManager;
+    @Mock
     private RestTemplate restTemplate;
+
+    @Mock
     private Model model;
+
+    @Mock
+    private HttpServletRequest request;
+
+    @InjectMocks
+    private UserManager userManager;
+
+    private final String TEST_TOKEN = "test-token";
+    private final String ADMIN_TOKEN = "admin";
 
     @BeforeEach
     void setUp() {
         userManager = new UserManager();
-        restTemplate = mock(RestTemplate.class);
-        model = mock(Model.class);
         ReflectionTestUtils.setField(userManager, "restTemplate", restTemplate);
     }
 
-    // Tests para login(String, String, Model)
+    // Tests para métodos de vista
 
     @Test
-    void testLogin_Success_Model() {
-        User user = new User("username", "password");
-        when(restTemplate.postForEntity(anyString(), eq(user), eq(String.class)))
-            .thenReturn(new ResponseEntity<>("token", HttpStatus.OK));
-
-        String view = userManager.login("username", "password", model);
-
-        assertEquals("posts", view);
-        verify(model).addAttribute(eq("token"), eq("token"));
-        verify(model).addAttribute(eq("successMessage"), anyString());
+    void registerForm_ShouldReturnIndexView() {
+        assertEquals("index", userManager.registerForm(new User()));
     }
 
     @Test
-    void testLogin_Failure_Model() {
-        User user = new User("username", "password");
-        when(restTemplate.postForEntity(anyString(), eq(user), eq(String.class)))
-            .thenReturn(new ResponseEntity<>(null, HttpStatus.OK));
-
-        String view = userManager.login("username", "password", model);
-
-        assertEquals("login", view);
-        verify(model).addAttribute(eq("errorMessage"), anyString());
+    void showRegistrationForm_ShouldReturnRegistrationView() {
+        assertEquals("registration", userManager.showRegistrationForm(model));
     }
 
     @Test
-    void testLogin_OtherException() {
-        User user = new User("user", "pass");
-        when(restTemplate.postForEntity(anyString(), eq(user), eq(String.class)))
-            .thenThrow(new ResourceAccessException("Error"));
-
-        assertThrows(ResourceAccessException.class, () -> userManager.login(user));
-    }
-
-    // Tests para logout(Model)
-
-    @Test
-    void testLogout_Success_Model() {
-        ReflectionTestUtils.setField(userManager, "token", "validToken");
-        when(restTemplate.postForEntity(anyString(), any(), eq(Boolean.class)))
-            .thenReturn(new ResponseEntity<>(true, HttpStatus.OK));
-
-        String view = userManager.logout(model);
-
-        assertEquals("index", view);
-        verify(model).addAttribute(eq("successMessage"), anyString());
+    void showLoginForm_ShouldReturnLoginView() {
+        assertEquals("login", userManager.showLoginForm(model));
     }
 
     @Test
-    void testLogout_Failure_Model() {
-        ReflectionTestUtils.setField(userManager, "token", "validToken");
-        when(restTemplate.postForEntity(anyString(), any(), eq(Boolean.class)))
-            .thenReturn(new ResponseEntity<>(false, HttpStatus.OK));
-
-        String view = userManager.logout(model);
-
-        assertEquals("index", view);
-        verify(model).addAttribute(eq("errorMessage"), anyString());
+    void post_ShouldReturnPostView() {
+        assertEquals("post", userManager.post(model));
     }
 
-    @Test
-    void testLogout_OtherException() {
-        when(restTemplate.postForEntity(anyString(), any(), eq(Boolean.class)))
-            .thenThrow(new ResourceAccessException("Error"));
-
-        assertThrows(ResourceAccessException.class, () -> userManager.logout("token"));
-    }
-
-    
-    // Tests para register(String, String, String, String, int, Model)
+    // Tests para register()
 
     @Test
-    void testRegister_Success_Model() {
-        User user = new User("username", "password", "name", "surname", 20);
-        when(restTemplate.postForEntity(anyString(), eq(user), eq(User.class)))
+    void register_SuccessfulRegistration_ShouldAddSuccessMessage() {
+        User user = new User("user", "pass", "name", "surname", 25);
+        when(restTemplate.postForEntity(anyString(), any(User.class), eq(User.class)))
             .thenReturn(new ResponseEntity<>(user, HttpStatus.OK));
 
-        String view = userManager.register("username", "password", "name", "surname", 20, model);
+        String result = userManager.register("user", "pass", "name", "surname", 25, model);
 
-        assertEquals("registration", view);
-        verify(model).addAttribute(eq("successMessage"), anyString());
+        assertEquals("registration", result);
+        verify(model).addAttribute("successMessage", "User registered successfully");
     }
 
     @Test
-    void testRegister_Failure_Model() {
-        User user = new User("username", "password", "name", "surname", 20);
-        when(restTemplate.postForEntity(anyString(), eq(user), eq(User.class)))
+    void register_FailedRegistration_ShouldAddErrorMessage() {
+        when(restTemplate.postForEntity(anyString(), any(User.class), eq(User.class)))
             .thenThrow(new HttpClientErrorException(HttpStatus.CONFLICT));
 
-        String view = userManager.register("username", "password", "name", "surname", 20, model);
+        String result = userManager.register("user", "pass", "name", "surname", 25, model);
 
-        assertEquals("registration", view);
-        verify(model).addAttribute(eq("errorMessage"), anyString());
+        assertEquals("registration", result);
+        verify(model).addAttribute("errorMessage", "User already exists");
     }
 
     @Test
-    void testRegister_OtherException() {
-        User user = new User("user", "pass", "name", "surname", 20);
-        when(restTemplate.postForEntity(anyString(), eq(user), eq(User.class)))
-            .thenThrow(new ResourceAccessException("Error"));
-
-        assertThrows(ResourceAccessException.class, () -> userManager.register(user));
-    }
-
-    
-    // Tests para createPost(String, Model)
-
-    @Test
-    void testCreatePost_Success_Model() {
-        ReflectionTestUtils.setField(userManager, "token", "validToken");
-        Post post = new Post();
-        when(restTemplate.postForEntity(anyString(), any(), eq(Post.class)))
-            .thenReturn(new ResponseEntity<>(post, HttpStatus.OK));
-
-        String view = userManager.createPost("some content", model);
-
-        assertEquals("post", view);
-        verify(model).addAttribute(eq("successMessage"), anyString());
-    }
-
-    @Test
-    void testCreatePost_Failure_Model() {
-        ReflectionTestUtils.setField(userManager, "token", "validToken");
-        when(restTemplate.postForEntity(anyString(), any(), eq(Post.class)))
-            .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
-
-        String view = userManager.createPost("some content", model);
-
-        assertEquals("post", view);
-        verify(model).addAttribute(eq("errorMessage"), anyString());
-    }
-
-    @Test
-    void testCreatePost_NoToken() {
-        ReflectionTestUtils.setField(userManager, "token", null);
-
-        String view = userManager.createPost("some content", model);
-
-        assertEquals("index", view);
-    }
-    
-    @Test
-    void testCreatePost_OtherException() {
-        PostDTO postDTO = new PostDTO("content", "token");
-        when(restTemplate.postForEntity(anyString(), eq(postDTO), eq(Post.class)))
-            .thenThrow(new ResourceAccessException("Error"));
-
-        assertThrows(ResourceAccessException.class, () -> userManager.createPost(postDTO));
-    }
-
-
-    // Tests para deletePost(Long, Model)
-
-    @Test
-    void testDeletePost_Success_Model() {
-        ReflectionTestUtils.setField(userManager, "token", "validToken");
-        when(restTemplate.postForEntity(anyString(), any(), eq(Boolean.class)))
-            .thenReturn(new ResponseEntity<>(true, HttpStatus.OK));
-        
-        List<Post> posts = Collections.singletonList(new Post());
-        ResponseEntity<List<Post>> response = new ResponseEntity<>(posts, HttpStatus.OK);
-        when(restTemplate.exchange(anyString(), any(), any(), any(ParameterizedTypeReference.class)))
-            .thenReturn(response);
-
-        String view = userManager.deletePost(1L, model);
-
-        assertEquals("postsUser", view);
-    }
-
-
-    @Test
-    void testDeletePost_NoToken() {
-        ReflectionTestUtils.setField(userManager, "token", null);
-
-        String view = userManager.deletePost(1L, model);
-
-        assertEquals("index", view);
-    }
-    
-    @Test
-    void testDeletePost_OtherException() {
-        Post post = new Post();
-        when(restTemplate.postForEntity(anyString(), eq(post), eq(Boolean.class)))
-            .thenThrow(new ResourceAccessException("Error"));
-
-        assertThrows(ResourceAccessException.class, () -> userManager.deletePost(post));
-    }
-
-    @Test
-    void testDeletePost_Success_ReturnsTrue() {
-        Post post = new Post();
-        when(restTemplate.postForEntity(anyString(), eq(post), eq(Boolean.class)))
-            .thenReturn(new ResponseEntity<>(true, HttpStatus.OK));
-        
-        boolean result = userManager.deletePost(post);
-        
-        assertTrue(result);
-    }
-
-    @Test
-    void testDeletePost_Unauthorized_ReturnsFalse() {
-        Post post = new Post();
-        when(restTemplate.postForEntity(anyString(), eq(post), eq(Boolean.class)))
-            .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
-        
-        boolean result = userManager.deletePost(post);
-        
-        assertFalse(result);
-    }
-
-    @Test
-    void testDeletePost_OtherHttpClientError_ThrowsException() {
-        Post post = new Post();
-        HttpClientErrorException ex = new HttpClientErrorException(HttpStatus.BAD_REQUEST);
-        when(restTemplate.postForEntity(anyString(), eq(post), eq(Boolean.class)))
-            .thenThrow(ex);
-        
-        assertThrows(HttpClientErrorException.class, () -> userManager.deletePost(post));
-    }
-
-    // Tests para updatePost(Long id, String content, Model model)
-
-    @Test
-    void testUpdatePost_Success_Model() {
-        ReflectionTestUtils.setField(userManager, "token", "validToken");
-
-        Post post = new Post();
-        post.setId(1L);
-        post.setContent("old content");
-
-        List<Post> posts = Collections.singletonList(post);
-        ResponseEntity<List<Post>> response = ResponseEntity.ok(posts);
-
-        // Mockeamos getPostsOwner
-        when(restTemplate.exchange(
-                anyString(),
-                eq(org.springframework.http.HttpMethod.GET),
-                isNull(),
-                any(ParameterizedTypeReference.class)))
-            .thenReturn((ResponseEntity) response);
-
-        // Mockeamos updatePost
-        when(restTemplate.postForEntity(anyString(), any(), eq(Post.class)))
-            .thenReturn(new ResponseEntity<>(post, HttpStatus.OK));
-
-        String view = userManager.updatePost(1L, "new content", model);
-
-        assertEquals("postsUser", view);
-    }
-
-
-//    @Test
-//    void testUpdatePost_PostNotFound_Model() {
-//        ReflectionTestUtils.setField(userManager, "token", "validToken");
-//
-//        Post post = new Post(); // Post vacío, id == null
-//
-//        List<Post> posts = Collections.singletonList(post);
-//        ResponseEntity<List<Post>> response = ResponseEntity.ok(posts);
-//
-//        when(restTemplate.exchange(
-//                anyString(),
-//                eq(org.springframework.http.HttpMethod.GET),
-//                isNull(),
-//                any(ParameterizedTypeReference.class)))
-//            .thenReturn((ResponseEntity) response);
-//
-//        String view = userManager.updatePost(1L, "new content", model);
-//
-//        assertEquals("index", view);
-//    }
-    @Test
-    void testGetPosts_Unauthorized_ReturnsNull() {
-        when(restTemplate.getForObject(anyString(), eq(List.class)))
-            .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
-
-        List<Post> result = userManager.getPosts("invalidToken");
-        
-        assertNull(result);
-    }
-
-    @Test
-    void testGetPostsOwner_Unauthorized_ReturnsNull() {
-        when(restTemplate.exchange(anyString(), any(), any(), any(ParameterizedTypeReference.class)))
-            .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
-
-        List<Post> result = userManager.getPostsOwner("invalidToken");
-        
-        assertNull(result);
-    }
-
-    @Test
-    void testGetPosts_OtherException_ThrowsException() {
-        when(restTemplate.getForObject(anyString(), eq(List.class)))
-            .thenThrow(new ResourceAccessException("Connection failed"));
-
-        assertThrows(ResourceAccessException.class, () -> userManager.getPosts("token"));
-    }
-
-    @Test
-    void testGetPostsOwner_OtherException_ThrowsException() {
-        when(restTemplate.exchange(anyString(), any(), any(), any(ParameterizedTypeReference.class)))
-            .thenThrow(new ResourceAccessException("Connection failed"));
-
-        assertThrows(ResourceAccessException.class, () -> userManager.getPostsOwner("token"));
-    }
-    
-    @Test
-    void testRegister_Success_ReturnsTrue() {
-        User user = new User("username", "password", "name", "surname", 20);
-        when(restTemplate.postForEntity(anyString(), eq(user), eq(User.class)))
-            .thenReturn(new ResponseEntity<>(user, HttpStatus.OK));
-
-        boolean result = userManager.register(user);
-        
-        assertTrue(result);
-    }
-
-    @Test
-    void testRegister_Conflict_ReturnsFalse() {
-        User user = new User("username", "password", "name", "surname", 20);
-        when(restTemplate.postForEntity(anyString(), eq(user), eq(User.class)))
-            .thenThrow(new HttpClientErrorException(HttpStatus.CONFLICT));
-
-        boolean result = userManager.register(user);
-        
-        assertFalse(result);
-    }
-
-    @Test
-    void testRegister_OtherException_ThrowsException() {
-        User user = new User("username", "password", "name", "surname", 20);
-        when(restTemplate.postForEntity(anyString(), eq(user), eq(User.class)))
-            .thenThrow(new ResourceAccessException("Connection failed"));
-
-        assertThrows(ResourceAccessException.class, () -> userManager.register(user));
-    }
-
-    @Test
-    void testLogin_Success_ReturnsToken() {
-        User user = new User("username", "password");
-        when(restTemplate.postForEntity(anyString(), eq(user), eq(String.class)))
-            .thenReturn(new ResponseEntity<>("token", HttpStatus.OK));
-
-        String result = userManager.login(user);
-        
-        assertEquals("token", result);
-    }
-    
-    @Test
-    void testLogin_Unauthorized_ReturnsNull() {
-        User user = new User("username", "password");
-        when(restTemplate.postForEntity(anyString(), eq(user), eq(String.class)))
-            .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
-
-        String result = userManager.login(user);
-        
-        assertNull(result);
-    }
-    
-    @Test
-    void testLogin_HttpClientErrorExceptionOtherStatus_ThrowsException() {
-        User user = new User("user", "pass");
-        when(restTemplate.postForEntity(anyString(), eq(user), eq(String.class)))
+    void register_OtherHttpError_ShouldThrowException() {
+        when(restTemplate.postForEntity(anyString(), any(User.class), eq(User.class)))
             .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
 
-        assertThrows(HttpClientErrorException.class, () -> userManager.login(user));
+        assertThrows(HttpClientErrorException.class, () -> 
+            userManager.register("user", "pass", "name", "surname", 25, model));
+    }
+
+    // Tests para login()
+
+    @Test
+    void login_AdminSuccess_ShouldReturnAdminView() {
+        when(restTemplate.postForEntity(anyString(), any(User.class), eq(String.class)))
+            .thenReturn(new ResponseEntity<>(ADMIN_TOKEN, HttpStatus.OK));
+        when(restTemplate.getForObject(anyString(), eq(List.class)))
+            .thenReturn(Collections.singletonList(new Post()));
+        when(restTemplate.exchange(
+                anyString(), 
+                eq(HttpMethod.GET), 
+                isNull(), 
+                any(ParameterizedTypeReference.class)))
+            .thenReturn(new ResponseEntity<>(Collections.singletonList(new User()), HttpStatus.OK));
+
+        String result = userManager.login("admin", "admin", model);
+
+        assertEquals("admin", result);
+        verify(model).addAttribute("token", ADMIN_TOKEN);
+        verify(model).addAttribute("successMessage", "Admin logged in successfully");
     }
 
     @Test
-    void testLogout_Success_ReturnsTrue() {
-        when(restTemplate.postForEntity(anyString(), any(), eq(Boolean.class)))
-            .thenReturn(new ResponseEntity<>(true, HttpStatus.OK));
+    void login_UserSuccess_ShouldReturnPostsView() {
+        when(restTemplate.postForEntity(anyString(), any(User.class), eq(String.class)))
+            .thenReturn(new ResponseEntity<>(TEST_TOKEN, HttpStatus.OK));
+        when(restTemplate.getForObject(anyString(), eq(List.class)))
+            .thenReturn(Collections.singletonList(new Post()));
 
-        boolean result = userManager.logout("validToken");
-        
-        assertTrue(result);
+        String result = userManager.login("user", "pass", model);
+
+        assertEquals("posts", result);
+        verify(model).addAttribute("token", TEST_TOKEN);
+        verify(model).addAttribute("successMessage", "User logged in successfully");
     }
 
     @Test
-    void testLogout_Unauthorized_ReturnsFalse() {
-        when(restTemplate.postForEntity(anyString(), any(), eq(Boolean.class)))
+    void login_Failure_ShouldReturnLoginViewWithError() {
+        when(restTemplate.postForEntity(anyString(), any(User.class), eq(String.class)))
             .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
 
-        boolean result = userManager.logout("invalidToken");
+        String result = userManager.login("user", "wrongpass", model);
+
+        assertEquals("login", result);
+        verify(model).addAttribute("errorMessage", "User not found");
+    }
+
+    // Tests para logout()
+
+    @Test
+    void logout_Success_ShouldClearTokenAndReturnIndex() {
+        userManager.token = TEST_TOKEN;
+        when(restTemplate.postForEntity(anyString(), eq(TEST_TOKEN), eq(Boolean.class)))
+            .thenReturn(new ResponseEntity<>(true, HttpStatus.OK));
+
+        String result = userManager.logout(model);
+
+        assertEquals("index", result);
+        assertNull(userManager.token);
+        verify(model).addAttribute("token", null);
+        verify(model).addAttribute("successMessage", "User logged out successfully");
+    }
+
+    @Test
+    void logout_Failure_ShouldReturnIndexWithError() {
+        userManager.token = TEST_TOKEN;
+        when(restTemplate.postForEntity(anyString(), eq(TEST_TOKEN), eq(Boolean.class)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+
+        String result = userManager.logout(model);
+
+        assertEquals("index", result);
+        verify(model).addAttribute("errorMessage", "User not found");
+    }
+
+    // Tests para getPosts()
+
+    @Test
+    void getPosts_WithoutToken_ShouldReturnPostsView() {
+        userManager.token = null;
+        String result = userManager.getPosts(model);
+        assertEquals("posts", result);
+        verify(model, never()).addAttribute(eq("posts"), any());
+    }
+    // Tests para createPost()
+
+    @Test
+    void createPost_Success_ShouldReturnPostViewWithSuccess() {
+        userManager.token = TEST_TOKEN;
+        when(restTemplate.postForEntity(anyString(), any(PostDTO.class), eq(Post.class)))
+            .thenReturn(new ResponseEntity<>(new Post(), HttpStatus.OK));
+
+        String result = userManager.createPost("Test content", model);
+
+        assertEquals("post", result);
+        verify(model).addAttribute("successMessage", "Post created successfully");
+    }
+
+    @Test
+    void createPost_Failure_ShouldReturnPostViewWithError() {
+        userManager.token = TEST_TOKEN;
+        when(restTemplate.postForEntity(anyString(), any(PostDTO.class), eq(Post.class)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+
+        String result = userManager.createPost("Test content", model);
+
+        assertEquals("post", result);
+        verify(model).addAttribute("errorMessage", "Post not created");
+    }
+
+    @Test
+    void createPost_NoToken_ShouldReturnIndex() {
+        userManager.token = null;
+        String result = userManager.createPost("Test content", model);
+        assertEquals("index", result);
+    }
+
+    // Tests para updatePost() (GET)
+
+    @Test
+    void updatePost_Get_ShouldReturnEditPostView() {
+        userManager.token = TEST_TOKEN;
+        Post testPost = new Post();
+        testPost.setId(1L);
+        testPost.setContent("Old content");
         
-        assertFalse(result);
-    }
-    
-    @Test
-    void testLogout_HttpClientErrorExceptionOtherStatus_ThrowsException() {
-        when(restTemplate.postForEntity(anyString(), any(), eq(Boolean.class)))
-            .thenThrow(new HttpClientErrorException(HttpStatus.FORBIDDEN));
+        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), isNull(), 
+            any(ParameterizedTypeReference.class)))
+            .thenReturn(new ResponseEntity<>(Collections.singletonList(testPost), HttpStatus.OK));
 
-        assertThrows(HttpClientErrorException.class, () -> userManager.logout("token"));
-    }
-    
-    @Test
-    void testUpdatePost_OtherException() {
-        Post post = new Post();
-        when(restTemplate.postForEntity(anyString(), eq(post), eq(Post.class)))
-            .thenThrow(new ResourceAccessException("Error"));
+        String result = userManager.updatePost(1L, model);
 
-        assertThrows(ResourceAccessException.class, () -> userManager.updatePost(post));
-    }
-
-
-    @Test
-    void testRegisterForm() {
-        User user = new User();
-        String view = userManager.registerForm(user);
-        assertEquals("index", view);
-    }
-
-    @Test
-    void testShowRegistrationForm() {
-        String view = userManager.showRegistrationForm(model);
-        assertEquals("registration", view);
-    }
-    
-    @Test
-    void testRegister_HttpClientErrorExceptionOtherStatus_ThrowsException() {
-        User user = new User("username", "password", "name", "surname", 20);
-        when(restTemplate.postForEntity(anyString(), eq(user), eq(User.class)))
-            .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
-
-        assertThrows(HttpClientErrorException.class, () -> userManager.register(user));
-    }
-    
-    @Test
-    void testshowLoginForm() {
-        User user = new User();
-        String view = userManager.registerForm(user);
-        assertEquals("index", view);
-    }
-    
-    @Test
-    void testShowLoginForm() {
-        String view = userManager.showLoginForm(model);
-        assertEquals("login", view);
-    }
-
-    @Test
-    void testPostForm() {
-        String view = userManager.post(model);
-        assertEquals("post", view);
-    }
-
-    // Tests para updatePost(Long id, Model model)
-
-    @Test
-    void testUpdatePostForm_Success_Model() {
-        ReflectionTestUtils.setField(userManager, "token", "validToken");
-        Post post = new Post();
-        post.setId(1L);
-        post.setContent("content");
-
-        ResponseEntity<List> response = new ResponseEntity<>(Collections.singletonList(post), HttpStatus.OK);
-        when(restTemplate.exchange(
-                anyString(),
-                eq(HttpMethod.GET),
-                isNull(),
-                any(ParameterizedTypeReference.class)))
-            .thenReturn(response);
-
-        String view = userManager.updatePost(1L, model);
-
-        assertEquals("editPost", view);
-        verify(model).addAttribute("post", post);
+        assertEquals("editPost", result);
+        verify(model).addAttribute("post", testPost);
         verify(model).addAttribute("id", 1L);
     }
 
     @Test
-    void testUpdatePostForm_NotFound_Model() {
-        ReflectionTestUtils.setField(userManager, "token", "validToken");
+    void updatePost_Get_PostNotFound_ShouldReturnIndex() {
+        userManager.token = TEST_TOKEN;
+        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), isNull(), 
+            any(ParameterizedTypeReference.class)))
+            .thenReturn(new ResponseEntity<>(Collections.emptyList(), HttpStatus.OK));
 
-        ResponseEntity<List> response = new ResponseEntity<>(Collections.emptyList(), HttpStatus.OK);
-        when(restTemplate.exchange(
-                anyString(),
-                eq(HttpMethod.GET),
-                isNull(),
-                any(ParameterizedTypeReference.class)))
-            .thenReturn(response);
+        String result = userManager.updatePost(1L, model);
 
-        String view = userManager.updatePost(1L, model);
-
-        assertEquals("index", view);
+        assertEquals("index", result);
     }
 
-    @Test
-    void testUpdatePostForm_NoToken_Model() {
-        ReflectionTestUtils.setField(userManager, "token", null);
-
-        String view = userManager.updatePost(1L, model);
-
-        assertEquals("index", view);
-    }
-
-    // --- Controller-level tests for updatePost (/update/post POST) ---
+    // Tests para addAttributes()
 
     @Test
-    void testUpdatePost_PostUpdate_Success_Model() {
-        ReflectionTestUtils.setField(userManager, "token", "validToken");
-        
-        // Prepare original post for find
-        Post original = new Post();
-        original.setId(1L);
-        original.setContent("old content");
-        ResponseEntity<List> findResponse = new ResponseEntity<>(Collections.singletonList(original), HttpStatus.OK);
-        // Prepare updated post after update
-        Post updated = new Post();
-        updated.setId(1L);
-        updated.setContent("new content");
-        ResponseEntity<List> postUpdateFetch = new ResponseEntity<>(Collections.singletonList(updated), HttpStatus.OK);
-
-        // Stub GET for owner posts: first call to find original, second to fetch updated list
-        when(restTemplate.exchange(
-                anyString(),
-                eq(HttpMethod.GET),
-                isNull(),
-                any(ParameterizedTypeReference.class)))
-            .thenReturn(findResponse, postUpdateFetch);
-
-        // Stub updatePost service call
-        when(restTemplate.postForEntity(
-                contains("/post/update"),
-                argThat(arg -> arg instanceof Post && ((Post)arg).getId() == 1L && "new content".equals(((Post)arg).getContent())),
-                eq(Post.class)))
-            .thenReturn(new ResponseEntity<>(updated, HttpStatus.OK));
-
-        String view = userManager.updatePost(1L, "new content", model);
-
-        assertEquals("postsUser", view);
-        verify(model).addAttribute("posts", Collections.singletonList(updated));
-        verify(model).addAttribute(eq("user"), any());
-    }
-
-    @Test
-    void testUpdatePost_NoToken_ReturnsIndex() {
-        ReflectionTestUtils.setField(userManager, "token", null);
-
-        String view = userManager.updatePost(1L, "content", model);
-
-        assertEquals("index", view);
-    }
-    
-    @Test
-    void testUpdatePost_Unauthorized_ReturnsNull() {
-        Post post = new Post();
-        when(restTemplate.postForEntity(anyString(), eq(post), eq(Post.class)))
-            .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
-        
-        Post result = userManager.updatePost(post);
-        
-        assertNull(result);
-    }
-
-    @Test
-    void testUpdatePost_OtherHttpClientError_ThrowsException() {
-        Post post = new Post();
-        HttpClientErrorException ex = new HttpClientErrorException(HttpStatus.FORBIDDEN);
-        when(restTemplate.postForEntity(anyString(), eq(post), eq(Post.class)))
-            .thenThrow(ex);
-        
-        assertThrows(HttpClientErrorException.class, () -> userManager.updatePost(post));
-    }
-
-    // Tests para getPostsOwner(Model)
-
-    @Test
-    void testGetPostsOwner_Success_Model() {
-        ReflectionTestUtils.setField(userManager, "token", "validToken");
-
-        ResponseEntity<List> response = new ResponseEntity<>(Collections.emptyList(), HttpStatus.OK);
-        when(restTemplate.exchange(anyString(), any(), any(), any(ParameterizedTypeReference.class)))
-            .thenReturn(response);
-
-        String view = userManager.getPostsOwner(model);
-
-        assertEquals("postsUser", view);
-    }
-
-    @Test
-    void testGetPostsOwner_NoToken_Model() {
-        ReflectionTestUtils.setField(userManager, "token", null);
-
-        String view = userManager.getPostsOwner(model);
-
-        assertEquals("postsUser", view);
-    }
-    
-    @Test
-    void testGetPostsOwner_OtherException() {
-        when(restTemplate.exchange(anyString(), any(), any(), any(ParameterizedTypeReference.class)))
-            .thenThrow(new ResourceAccessException("Error"));
-
-        assertThrows(ResourceAccessException.class, () -> userManager.getPostsOwner("token"));
-    }
-
-
-    // Tests para getPosts(Model)
-
-    @Test
-    void testGetPosts_Success_Model() {
-        ReflectionTestUtils.setField(userManager, "token", "validToken");
-
-        when(restTemplate.getForObject(anyString(), eq(List.class)))
-            .thenReturn(Collections.emptyList());
-
-        String view = userManager.getPosts(model);
-
-        assertEquals("posts", view);
-    }
-
-    @Test
-    void testGetPosts_NoToken_Model() {
-        ReflectionTestUtils.setField(userManager, "token", null);
-
-        String view = userManager.getPosts(model);
-
-        assertEquals("posts", view);
-    }
-
-    @Test
-    void testGetPosts_OtherException() {
-        when(restTemplate.getForObject(anyString(), eq(List.class)))
-            .thenThrow(new ResourceAccessException("Error"));
-
-        assertThrows(ResourceAccessException.class, () -> userManager.getPosts("token"));
-    }
-
-    
-    // Tests para addAttributes(Model, HttpServletRequest)
-
-    @Test
-    void testAddAttributes_Model() {
-        HttpServletRequest request = mock(HttpServletRequest.class);
+    void addAttributes_ShouldAddCurrentUrlAndToken() {
         when(request.getRequestURI()).thenReturn("/test");
-
+        userManager.token = TEST_TOKEN;
+        
         userManager.addAttributes(model, request);
-
+        
         verify(model).addAttribute(eq("currentUrl"), anyString());
-        verify(model).addAttribute(eq("token"), any());
+        verify(model).addAttribute("token", TEST_TOKEN);
     }
+
+    // Tests para métodos de servicio
+
     @Test
-    void testGetPosts_HttpClientErrorExceptionOtherStatus_ThrowsException() {
+    void register_ShouldReturnTrueOnSuccess() {
+        when(restTemplate.postForEntity(anyString(), any(User.class), eq(User.class)))
+            .thenReturn(new ResponseEntity<>(new User(), HttpStatus.OK));
+        
+        assertTrue(userManager.register(new User("user", "pass", "name", "surname", 25)));
+    }
+
+    @Test
+    void login_ShouldReturnTokenOnSuccess() {
+        when(restTemplate.postForEntity(anyString(), any(User.class), eq(String.class)))
+            .thenReturn(new ResponseEntity<>(TEST_TOKEN, HttpStatus.OK));
+        
+        assertEquals(TEST_TOKEN, userManager.login(new User("user", "pass")));
+    }
+
+    @Test
+    void logout_ShouldReturnTrueOnSuccess() {
+        when(restTemplate.postForEntity(anyString(), eq(TEST_TOKEN), eq(Boolean.class)))
+            .thenReturn(new ResponseEntity<>(true, HttpStatus.OK));
+        
+        assertTrue(userManager.logout(TEST_TOKEN));
+    }
+
+    @Test
+    void getPosts_ShouldReturnPostsList() {
+        List<Post> expectedPosts = Arrays.asList(new Post(), new Post());
         when(restTemplate.getForObject(anyString(), eq(List.class)))
-            .thenThrow(new HttpClientErrorException(HttpStatus.FORBIDDEN));
-
-        assertThrows(HttpClientErrorException.class, () -> userManager.getPosts("token"));
+            .thenReturn(expectedPosts);
+        
+        assertEquals(expectedPosts, userManager.getPosts(TEST_TOKEN));
     }
 
     @Test
-    void testGetPostsOwner_HttpClientErrorExceptionOtherStatus_ThrowsException() {
-        when(restTemplate.exchange(
-                anyString(),
-                eq(HttpMethod.GET),
-                isNull(),
-                any(ParameterizedTypeReference.class)))
-            .thenThrow(new HttpClientErrorException(HttpStatus.FORBIDDEN));
+    void getPostsOwner_ShouldReturnPostsList() {
+        List<Post> expectedPosts = Arrays.asList(new Post(), new Post());
+        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), isNull(), 
+            any(ParameterizedTypeReference.class)))
+            .thenReturn(new ResponseEntity<>(expectedPosts, HttpStatus.OK));
+        
+        assertEquals(expectedPosts, userManager.getPostsOwner(TEST_TOKEN));
+    }
 
-        assertThrows(HttpClientErrorException.class, () -> userManager.getPostsOwner("token"));
+    @Test
+    void createPost_ShouldReturnCreatedPost() {
+        Post expectedPost = new Post();
+        when(restTemplate.postForEntity(anyString(), any(PostDTO.class), eq(Post.class)))
+            .thenReturn(new ResponseEntity<>(expectedPost, HttpStatus.OK));
+        
+        assertEquals(expectedPost, userManager.createPost(new PostDTO("content", TEST_TOKEN)));
+    }
+
+    @Test
+    void updatePost_ShouldReturnUpdatedPost() {
+        Post expectedPost = new Post();
+        when(restTemplate.postForEntity(anyString(), any(Post.class), eq(Post.class)))
+            .thenReturn(new ResponseEntity<>(expectedPost, HttpStatus.OK));
+        
+        assertEquals(expectedPost, userManager.updatePost(expectedPost));
+    }
+
+    @Test
+    void deletePost_ShouldReturnTrueOnSuccess() {
+        when(restTemplate.postForEntity(anyString(), any(Post.class), eq(Boolean.class)))
+            .thenReturn(new ResponseEntity<>(true, HttpStatus.OK));
+        
+        assertTrue(userManager.deletePost(new Post()));
+    }
+
+    @Test
+    void getAllUsers_ShouldReturnUsersList() {
+        List<User> expectedUsers = Arrays.asList(new User(), new User());
+        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), isNull(), 
+            any(ParameterizedTypeReference.class)))
+            .thenReturn(new ResponseEntity<>(expectedUsers, HttpStatus.OK));
+        
+        assertEquals(expectedUsers, userManager.getAllUsers(TEST_TOKEN));
+    }
+
+    // Tests para casos de error en métodos de servicio
+
+    @Test
+    void getPosts_Unauthorized_ReturnsNull() {
+        when(restTemplate.getForObject(anyString(), eq(List.class)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+
+        assertNull(userManager.getPosts("invalidToken"));
+    }
+
+    @Test
+    void getPostsOwner_Unauthorized_ReturnsNull() {
+        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), isNull(), 
+            any(ParameterizedTypeReference.class)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+
+        assertNull(userManager.getPostsOwner("invalidToken"));
+    }
+
+    @Test
+    void getAllUsers_Unauthorized_ReturnsNull() {
+        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), isNull(), 
+            any(ParameterizedTypeReference.class)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+
+        assertNull(userManager.getAllUsers("invalidToken"));
+    }
+
+    @Test
+    void createPost_Unauthorized_ReturnsNull() {
+        when(restTemplate.postForEntity(anyString(), any(PostDTO.class), eq(Post.class)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+
+        assertNull(userManager.createPost(new PostDTO("content", "invalidToken")));
+    }
+
+    @Test
+    void updatePost_Unauthorized_ReturnsNull() {
+        when(restTemplate.postForEntity(anyString(), any(Post.class), eq(Post.class)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+
+        assertNull(userManager.updatePost(new Post()));
+    }
+
+    @Test
+    void deletePost_Unauthorized_ReturnsFalse() {
+        when(restTemplate.postForEntity(anyString(), any(Post.class), eq(Boolean.class)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+
+        assertFalse(userManager.deletePost(new Post()));
+    }
+
+    // Tests para excepciones no manejadas específicamente
+
+    @Test
+    void register_OtherHttpError_ShouldThrow() {
+        when(restTemplate.postForEntity(anyString(), any(User.class), eq(User.class)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+
+        assertThrows(HttpClientErrorException.class, () -> 
+            userManager.register(new User("user", "pass", "name", "surname", 25)));
+    }
+
+    @Test
+    void login_OtherHttpError_ShouldThrow() {
+        when(restTemplate.postForEntity(anyString(), any(User.class), eq(String.class)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+
+        assertThrows(HttpClientErrorException.class, () -> 
+            userManager.login(new User("user", "pass")));
+    }
+
+    @Test
+    void getPosts_OtherError_ShouldThrow() {
+        when(restTemplate.getForObject(anyString(), eq(List.class)))
+            .thenThrow(new RuntimeException("Connection error"));
+
+        assertThrows(RuntimeException.class, () -> userManager.getPosts(TEST_TOKEN));
+    }
+    
+    @Test
+    void register_OtherHttpError_ShouldThrowOriginalException() {
+        HttpClientErrorException expectedException = new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+        when(restTemplate.postForEntity(anyString(), any(User.class), eq(User.class)))
+            .thenThrow(expectedException);
+
+        HttpClientErrorException thrown = assertThrows(HttpClientErrorException.class, 
+            () -> userManager.register(new User("user", "pass", "name", "surname", 25)));
+        
+        assertEquals(HttpStatus.BAD_REQUEST, thrown.getStatusCode());
+        assertSame(expectedException, thrown);
+    }
+
+    @Test
+    void login_OtherHttpError_ShouldThrowOriginalException() {
+        HttpClientErrorException expectedException = new HttpClientErrorException(HttpStatus.FORBIDDEN);
+        when(restTemplate.postForEntity(anyString(), any(User.class), eq(String.class)))
+            .thenThrow(expectedException);
+
+        HttpClientErrorException thrown = assertThrows(HttpClientErrorException.class, 
+            () -> userManager.login(new User("user", "pass")));
+        
+        assertEquals(HttpStatus.FORBIDDEN, thrown.getStatusCode());
+        assertSame(expectedException, thrown);
+    }
+
+    @Test
+    void logout_OtherHttpError_ShouldThrowOriginalException() {
+        HttpClientErrorException expectedException = new HttpClientErrorException(HttpStatus.BAD_GATEWAY);
+        when(restTemplate.postForEntity(anyString(), eq(TEST_TOKEN), eq(Boolean.class)))
+            .thenThrow(expectedException);
+
+        HttpClientErrorException thrown = assertThrows(HttpClientErrorException.class, 
+            () -> userManager.logout(TEST_TOKEN));
+        
+        assertEquals(HttpStatus.BAD_GATEWAY, thrown.getStatusCode());
+        assertSame(expectedException, thrown);
+    }
+
+    @Test
+    void getPosts_OtherHttpError_ShouldThrowOriginalException() {
+        HttpClientErrorException expectedException = new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        when(restTemplate.getForObject(anyString(), eq(List.class)))
+            .thenThrow(expectedException);
+
+        HttpClientErrorException thrown = assertThrows(HttpClientErrorException.class, 
+            () -> userManager.getPosts(TEST_TOKEN));
+        
+        assertEquals(HttpStatus.NOT_FOUND, thrown.getStatusCode());
+        assertSame(expectedException, thrown);
+    }
+
+    @Test
+    void getPostsOwner_OtherHttpError_ShouldThrowOriginalException() {
+        HttpClientErrorException expectedException = new HttpClientErrorException(HttpStatus.FORBIDDEN);
+        when(restTemplate.exchange(
+                anyString(), 
+                eq(HttpMethod.GET), 
+                isNull(), 
+                any(ParameterizedTypeReference.class)))
+            .thenThrow(expectedException);
+
+        HttpClientErrorException thrown = assertThrows(HttpClientErrorException.class, 
+            () -> userManager.getPostsOwner(TEST_TOKEN));
+        
+        assertEquals(HttpStatus.FORBIDDEN, thrown.getStatusCode());
+        assertSame(expectedException, thrown);
+    }
+
+    @Test
+    void createPost_OtherHttpError_ShouldThrowOriginalException() {
+        HttpClientErrorException expectedException = new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+        when(restTemplate.postForEntity(anyString(), any(PostDTO.class), eq(Post.class)))
+            .thenThrow(expectedException);
+
+        HttpClientErrorException thrown = assertThrows(HttpClientErrorException.class, 
+            () -> userManager.createPost(new PostDTO("content", TEST_TOKEN)));
+        
+        assertEquals(HttpStatus.BAD_REQUEST, thrown.getStatusCode());
+        assertSame(expectedException, thrown);
+    }
+
+    @Test
+    void updatePost_OtherHttpError_ShouldThrowOriginalException() {
+        HttpClientErrorException expectedException = new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR);
+        when(restTemplate.postForEntity(anyString(), any(Post.class), eq(Post.class)))
+            .thenThrow(expectedException);
+
+        HttpClientErrorException thrown = assertThrows(HttpClientErrorException.class, 
+            () -> userManager.updatePost(new Post()));
+        
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, thrown.getStatusCode());
+        assertSame(expectedException, thrown);
+    }
+
+    @Test
+    void deletePost_OtherHttpError_ShouldThrowOriginalException() {
+        HttpClientErrorException expectedException = new HttpClientErrorException(HttpStatus.SERVICE_UNAVAILABLE);
+        when(restTemplate.postForEntity(anyString(), any(Post.class), eq(Boolean.class)))
+            .thenThrow(expectedException);
+
+        HttpClientErrorException thrown = assertThrows(HttpClientErrorException.class, 
+            () -> userManager.deletePost(new Post()));
+        
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, thrown.getStatusCode());
+        assertSame(expectedException, thrown);
+    }
+
+    @Test
+    void getAllUsers_OtherHttpError_ShouldThrowOriginalException() {
+        HttpClientErrorException expectedException = new HttpClientErrorException(HttpStatus.FORBIDDEN);
+        when(restTemplate.exchange(
+                anyString(), 
+                eq(HttpMethod.GET), 
+                isNull(), 
+                any(ParameterizedTypeReference.class)))
+            .thenThrow(expectedException);
+
+        HttpClientErrorException thrown = assertThrows(HttpClientErrorException.class, 
+            () -> userManager.getAllUsers(TEST_TOKEN));
+        
+        assertEquals(HttpStatus.FORBIDDEN, thrown.getStatusCode());
+        assertSame(expectedException, thrown);
     }
 }

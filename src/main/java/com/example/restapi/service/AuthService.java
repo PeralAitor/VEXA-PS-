@@ -91,7 +91,7 @@ public class AuthService {
 		return userRepository.findAll();
 	}
 	
-	private static synchronized String generateToken() {
+	public static synchronized String generateToken() {
         return Long.toHexString(System.currentTimeMillis());
     }
 }

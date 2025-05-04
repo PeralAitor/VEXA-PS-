@@ -11,6 +11,7 @@ import org.mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.util.List;
 import java.util.Map;
 
 public class AuthServiceTest {
@@ -120,5 +121,80 @@ public class AuthServiceTest {
 
         assertNotNull(retrievedUser);
         assertEquals("testuser", retrievedUser.getUsername());
+    }
+    
+    @Test
+    public void registerAdminUsernameShouldFail() {
+        userDTO.setUsername("admin");
+        boolean result = authService.register(userDTO);
+        assertFalse(result);
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    public void loginAdminSuccessTest() {
+        credentials.setUsername("admin");
+        credentials.setPassword("admin");
+        
+        String token = authService.login(credentials);
+        
+        assertEquals("admin", token);
+        assertNotNull(AuthService.getUserFromMap(token));
+    }
+
+    @Test
+    public void loginAdminAlreadyLoggedInTest() {
+        credentials.setUsername("admin");
+        credentials.setPassword("admin");
+        
+        // Primer login exitoso
+        String firstToken = authService.login(credentials);
+        assertNotNull(firstToken);
+        
+        // Segundo intento debería fallar
+        String secondToken = authService.login(credentials);
+        assertNull(secondToken);
+    }
+
+    @Test
+    public void loginAdminWrongPasswordTest() {
+        credentials.setUsername("admin");
+        credentials.setPassword("wrongpassword");
+        
+        String token = authService.login(credentials);
+        assertNull(token);
+    }
+
+    @Test
+    public void getAllUsersWithValidTokenTest() {
+        when(userRepository.findByUsername("testuser")).thenReturn(user);
+        when(userRepository.findAll()).thenReturn(List.of(user));
+        
+        String token = authService.login(credentials);
+        List<User> users = authService.getAllUsers(token);
+        
+        assertNotNull(users);
+        assertEquals(1, users.size());
+    }
+
+    @Test
+    public void getAllUsersWithInvalidTokenTest() {
+        List<User> users = authService.getAllUsers("invalidToken");
+        assertNull(users);
+    }
+
+    @Test
+    public void getUserFromMapWithInvalidTokenTest() {
+        User user = AuthService.getUserFromMap("invalidToken");
+        assertNull(user);
+    }
+
+
+    @Test
+    public void loginUserNotFoundTest() {
+        when(userRepository.findByUsername("testuser")).thenReturn(null);
+        
+        String token = authService.login(credentials);
+        assertNull(token);
     }
 }

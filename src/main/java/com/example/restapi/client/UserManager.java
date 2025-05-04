@@ -29,7 +29,7 @@ public class UserManager {
 	private final String USER_CONTROLLER_URL;
 	private final String POST_CONTROLLER_URL;
 	private final RestTemplate restTemplate;
-	private String token;
+	public String token;
 
 	//	private String responseRegister;
 
