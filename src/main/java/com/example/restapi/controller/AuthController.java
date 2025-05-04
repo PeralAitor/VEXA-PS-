@@ -1,10 +1,14 @@
 package com.example.restapi.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.restapi.dto.CredentialsDTO;
@@ -46,6 +50,16 @@ public class AuthController {
 		}
 		return new ResponseEntity<>(false, HttpStatus.UNAUTHORIZED);
 	}
+	
+	@GetMapping("/users")
+    public ResponseEntity<List<User>> getAllUsers(@RequestParam String token) {
+        // Verificar si es admin
+        User user = AuthService.getUserFromMap(token);
+        if (user != null && "admin".equals(user.getUsername())) {
+            return ResponseEntity.ok(authService.getAllUsers(token));
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
 }
 
 

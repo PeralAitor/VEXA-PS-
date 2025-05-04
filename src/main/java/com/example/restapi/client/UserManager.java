@@ -82,13 +82,26 @@ public class UserManager {
 	    token = login(user);
 	    
 	    if (token != null) {
-	        model.addAttribute("token", token);
-	        model.addAttribute("successMessage", "User logged in successfully");
-	        
-	        List<Post> posts = getPosts(token);
-	        model.addAttribute("posts", posts);
-	        
-	        return "posts";
+	    	if (token.equals("admin")) {
+				model.addAttribute("token", token);
+				model.addAttribute("successMessage", "Admin logged in successfully");
+				
+				List<Post> posts = getPosts(token);
+		        model.addAttribute("posts", posts);
+		        
+		        List<User> users = getAllUsers(token);
+		        model.addAttribute("users", users);
+		        
+				return "admin";
+	    	} else {
+		    	model.addAttribute("token", token);
+		        model.addAttribute("successMessage", "User logged in successfully");
+		        
+		        List<Post> posts = getPosts(token);
+		        model.addAttribute("posts", posts);
+		        
+		        return "posts";
+	    	}
 	    } else {
 	        model.addAttribute("errorMessage", "User not found");
 	        return "login";
@@ -326,5 +339,21 @@ public class UserManager {
 	            throw ex;
 	        }
 	    }
+	}
+	
+	public List<User> getAllUsers(String token) {
+		try {
+			String url = USER_CONTROLLER_URL.concat("/users?token=").concat(token);
+			ResponseEntity<List<User>> response = restTemplate.exchange(url, HttpMethod.GET, null,
+					new ParameterizedTypeReference<List<User>>() {
+					});
+			return response.getBody();
+		} catch (HttpClientErrorException ex) {
+			if (ex.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+				return null;
+			} else {
+				throw ex;
+			}
+		}
 	}
 }
