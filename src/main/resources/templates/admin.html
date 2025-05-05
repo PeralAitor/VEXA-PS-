@@ -41,6 +41,29 @@
             gap: 1rem;
             margin-right: 2rem;
         }
+
+        /* Estilos añadidos para los botones de acción */
+        .action-btns {
+            display: none;
+            position: absolute;
+            top: 0;
+            right: 0;
+            gap: 5px;
+            z-index: 1;
+            margin: 0.5rem;
+        }
+
+        .post-card:hover .action-btns {
+            display: flex !important;
+        }
+
+        .post-card {
+            position: relative;
+            padding: 1rem;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            margin-bottom: 1.5rem;
+        }
     </style>
 </head>
 <body>
@@ -100,7 +123,7 @@
             </div>
         </div>
 
-        <!-- Sección de Posts (oculta por defecto) -->
+        <!-- Sección de Posts modificada -->
         <div id="postsSection" class="glass-container hidden">
             <h2 class="mb-4 gradient-text">
                 <i class="fas fa-comments me-2"></i>Posts recientes
@@ -112,8 +135,19 @@
             </div>
 
             <div th:each="post, stat : ${posts}" 
-                 class="post-card mb-4" 
+                 class="post-card mb-4 position-relative"
                  th:style="'--post-color: hsl(' + (${stat.index} * 70) + ', 70%, 65%);'">
+                
+                <!-- Botones de Acción -->
+                <div class="action-btns">
+                    <form th:action="@{/post/delete}" method="post">
+                        <input type="hidden" name="id" th:value="${post.id}" />
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </form>
+                </div>
+
                 <div class="d-flex align-items-center mb-3">
                     <div class="user-icon me-3">
                         <i class="fas fa-user-circle fa-2x"></i>

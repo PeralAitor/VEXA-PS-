@@ -205,12 +205,31 @@ public class UserManager {
 	@PostMapping("/post/delete")
 	public String deletePost(@RequestParam Long id, Model model) {
 	    if (token != null) {
+	    	if(token.equals("admin")) {
+	    		
+	    		Post post = new Post();
+	 	        post.setId(id);
+	 	        deletePost(post);
+	    		
+	    		model.addAttribute("token", token);
+				model.addAttribute("successMessage", "Admin logged in successfully");
+				
+				List<Post> posts = getPosts(token);
+		        model.addAttribute("posts", posts);
+		        
+		        List<User> users = getAllUsers(token);
+		        model.addAttribute("users", users);
+	    		
+	        	return "admin";
+	        }
 	        Post post = new Post();
 	        post.setId(id);
 	        deletePost(post);
 	        List<Post> posts = getPostsOwner(token);
 	        model.addAttribute("posts", posts);
 	        model.addAttribute("user", AuthService.getUserFromMap(token));
+	        
+	        
 	        return "postsUser";
 	    }
 	    return "index";
