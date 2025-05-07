@@ -18,10 +18,12 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.example.restapi.dto.PostDTO;
+import com.example.restapi.dto.UserDTO;
 import com.example.restapi.model.Post;
 import com.example.restapi.model.User;
 import com.example.restapi.service.AuthService;
 
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.servlet.http.HttpServletRequest;
 @Controller
 public class UserManager {
@@ -234,6 +236,27 @@ public class UserManager {
 	    }
 	    return "index";
 	}
+	
+	@PostMapping("/user/delete")
+	public String deleteUser(@RequestParam String username, Model model) {
+		if (token.equals("admin")) {
+			User user = new User();
+			user.setUsername(username);
+			deleteUser(user);
+    		
+    		model.addAttribute("token", token);
+			model.addAttribute("successMessage", "Admin logged in successfully");
+			
+			List<Post> posts = getPosts(token);
+	        model.addAttribute("posts", posts);
+	        
+	        List<User> users = getAllUsers(token);
+	        model.addAttribute("users", users);
+    		
+        	return "admin";
+		}
+		return "index";
+	}
 
 	// A partir de aquí son las funciones que podríamos poner en el Service del lado del cliente
 	public boolean register(User user) {
@@ -374,5 +397,17 @@ public class UserManager {
 				throw ex;
 			}
 		}
+	}
+	
+	public void deleteUser(User user) {
+	    try {
+	        String url = POST_CONTROLLER_URL.concat("/user/delete");
+	        restTemplate.postForEntity(url, user, Void.class);
+	    } catch (HttpClientErrorException ex) {
+	        if (ex.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+	        } else {
+	            throw ex;
+	        }
+	    }
 	}
 }

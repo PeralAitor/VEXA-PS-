@@ -9,5 +9,5 @@ import com.example.restapi.model.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, String>{
 	public User findByUsername(String username);
-	
+	public void deleteById(String username);
 	}

@@ -9,9 +9,11 @@ import org.springframework.stereotype.Service;
 
 import com.example.restapi.dto.PostDTO;
 import com.example.restapi.dto.TokenDTO;
+import com.example.restapi.dto.UserDTO;
 import com.example.restapi.model.Post;
 import com.example.restapi.model.User;
 import com.example.restapi.repository.PostRepository;
+import com.example.restapi.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -19,10 +21,11 @@ import jakarta.transaction.Transactional;
 public class VEXAService {
 
     private final PostRepository postRepository;
+    private final UserRepository userRepository;
 
-
-    public VEXAService(PostRepository postRepository) {
+    public VEXAService(PostRepository postRepository, UserRepository userRepository) {
         this.postRepository = postRepository;
+        this.userRepository = userRepository;
     }
 
     public Post createPost(PostDTO postDTO, String token) {
@@ -67,4 +70,12 @@ public class VEXAService {
 	    }
 	    return false;
 	}
+	
+	public void deleteUser(UserDTO userDTO) {
+		List<Post> posts = postRepository.findByOwner(userDTO.getUsername());
+		for (Post post : posts) {
+			postRepository.deleteById(post.getId());
+		}
+        userRepository.deleteById(userDTO.getUsername());
+    }
 }

@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.restapi.dto.PostDTO;
 import com.example.restapi.dto.TokenDTO;
+import com.example.restapi.dto.UserDTO;
 import com.example.restapi.model.Post;
+import com.example.restapi.model.User;
 import com.example.restapi.repository.PostRepository;
 import com.example.restapi.service.AuthService;
 import com.example.restapi.service.VEXAService;
@@ -27,7 +29,7 @@ public class VEXAController {
     private final VEXAService vexaService;
     private final PostRepository postRepository;
 
-    public VEXAController(VEXAService vexaService,PostRepository postRepository) {
+    public VEXAController(VEXAService vexaService, PostRepository postRepository) {
         this.vexaService = vexaService;
         this.postRepository = postRepository;
     }
@@ -71,4 +73,8 @@ public class VEXAController {
     	return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
     
+    @PostMapping("/user/delete")
+    public void deleteUser(@RequestBody UserDTO userDTO) {
+		vexaService.deleteUser(userDTO);
+	}
 }
