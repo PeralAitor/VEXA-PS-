@@ -33,6 +33,7 @@
         <server.port>8080</server.port>
         <jacoco.version>0.8.12</jacoco.version>
         <surefire.version>3.2.3</surefire.version>
+        <doxygen.config.file>${basedir}/src/main/resources/Doxyfile</doxygen.config.file>
     </properties>
     <dependencies>
         <!-- JUnit5 -->
@@ -172,6 +173,39 @@
                     </execution>
                 </executions>
             </plugin>
+            
+	      	<plugin>
+				<groupId>com.soebes.maven.plugins</groupId>
+				<artifactId>doxygen-maven-plugin</artifactId>
+				<version>1.1.0</version>
+				<configuration>
+					<configurationFile>${doxygen.config.file}</configurationFile>
+				</configuration>
+			</plugin>
+			
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.6</version>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<!--  here the phase you need  -->
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/docs</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/target/doxygen/html</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
         </plugins>
     </build>
 
