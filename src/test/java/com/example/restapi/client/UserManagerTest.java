@@ -829,4 +829,158 @@ class UserManagerTest {
 
         assertThrows(ResourceAccessException.class, () -> userManager.createPost(postDTO));
     }
+    
+ // Tests para deletePost como administrador
+    @Test
+    void testDeletePost_Admin_Success_Model() {
+        ReflectionTestUtils.setField(userManager, "token", "admin");
+        
+        // Mock de la eliminación del post
+        when(restTemplate.postForEntity(anyString(), any(), eq(Boolean.class)))
+            .thenReturn(new ResponseEntity<>(true, HttpStatus.OK));
+        
+        // Mock de la obtención de posts actualizados
+        List<Post> expectedPosts = Collections.singletonList(new Post());
+        when(restTemplate.getForObject(anyString(), eq(List.class)))
+            .thenReturn(expectedPosts);
+        
+        // Mock de la obtención de usuarios
+        List<User> expectedUsers = Collections.singletonList(new User());
+        ResponseEntity<List<User>> usersResponse = new ResponseEntity<>(expectedUsers, HttpStatus.OK);
+        when(restTemplate.exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)))
+            .thenReturn(usersResponse);
+
+        String view = userManager.deletePost(1L, model);
+
+        assertEquals("admin", view);
+        verify(model).addAttribute("token", "admin");
+        verify(model).addAttribute("posts", expectedPosts);
+        verify(model).addAttribute("users", expectedUsers);
+        verify(model).addAttribute("successMessage", "Admin logged in successfully");
+    }
+
+    /*@Test
+    void testDeletePost_Admin_Failure_Model() {
+        ReflectionTestUtils.setField(userManager, "token", "admin");
+        
+        // Mock de fallo en la eliminación del post
+        when(restTemplate.postForEntity(anyString(), any(), eq(Boolean.class)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+        
+        // Mock de la obtención de posts actualizados (aunque no debería llegar aquí)
+        List<Post> expectedPosts = Collections.singletonList(new Post());
+        when(restTemplate.getForObject(anyString(), eq(List.class)))
+            .thenReturn(expectedPosts);
+        
+        // Mock de la obtención de usuarios
+        List<User> expectedUsers = Collections.singletonList(new User());
+        ResponseEntity<List<User>> usersResponse = new ResponseEntity<>(expectedUsers, HttpStatus.OK);
+        when(restTemplate.exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)))
+            .thenReturn(usersResponse);
+
+        String view = userManager.deletePost(1L, model);
+
+        assertEquals("admin", view);
+        // Verificamos que se mantiene en la vista de admin aunque falle la eliminación
+        verify(model).addAttribute("token", "admin");
+        verify(model).addAttribute("posts", expectedPosts);
+        verify(model).addAttribute("users", expectedUsers);
+    }*/
+
+    @Test
+    void testDeletePost_Admin_Unauthorized_Model() {
+        ReflectionTestUtils.setField(userManager, "token", "admin");
+        
+        // Mock de fallo por no autorizado (token inválido)
+        when(restTemplate.postForEntity(anyString(), any(), eq(Boolean.class)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+        
+        // Mock de la obtención de posts actualizados (aunque no debería llegar aquí)
+        List<Post> expectedPosts = Collections.singletonList(new Post());
+        when(restTemplate.getForObject(anyString(), eq(List.class)))
+            .thenReturn(expectedPosts);
+        
+        // Mock de la obtención de usuarios
+        List<User> expectedUsers = Collections.singletonList(new User());
+        ResponseEntity<List<User>> usersResponse = new ResponseEntity<>(expectedUsers, HttpStatus.OK);
+        when(restTemplate.exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)))
+            .thenReturn(usersResponse);
+
+        String view = userManager.deletePost(1L, model);
+
+        assertEquals("admin", view);
+        // Verificamos que se mantiene en la vista de admin aunque falle la autorización
+        verify(model).addAttribute("token", "admin");
+        verify(model).addAttribute("posts", expectedPosts);
+        verify(model).addAttribute("users", expectedUsers);
+    }
+
+    @Test
+    void testDeletePost_Admin_ConnectionError_Model() {
+        ReflectionTestUtils.setField(userManager, "token", "admin");
+        
+        // Mock de error de conexión
+        when(restTemplate.postForEntity(anyString(), any(), eq(Boolean.class)))
+            .thenThrow(new ResourceAccessException("Connection failed"));
+        
+        // Mock de la obtención de posts actualizados (aunque no debería llegar aquí)
+        List<Post> expectedPosts = Collections.singletonList(new Post());
+        when(restTemplate.getForObject(anyString(), eq(List.class)))
+            .thenReturn(expectedPosts);
+        
+        // Mock de la obtención de usuarios
+        List<User> expectedUsers = Collections.singletonList(new User());
+        ResponseEntity<List<User>> usersResponse = new ResponseEntity<>(expectedUsers, HttpStatus.OK);
+        when(restTemplate.exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)))
+            .thenReturn(usersResponse);
+
+        assertThrows(ResourceAccessException.class, () -> userManager.deletePost(1L, model));
+    }
+
+    // Test para verificar el comportamiento cuando el token es admin pero no hay posts
+    @Test
+    void testDeletePost_Admin_NoPosts_Model() {
+        ReflectionTestUtils.setField(userManager, "token", "admin");
+        
+        // Mock de eliminación exitosa
+        when(restTemplate.postForEntity(anyString(), any(), eq(Boolean.class)))
+            .thenReturn(new ResponseEntity<>(true, HttpStatus.OK));
+        
+        // Mock de lista de posts vacía
+        when(restTemplate.getForObject(anyString(), eq(List.class)))
+            .thenReturn(Collections.emptyList());
+        
+        // Mock de la obtención de usuarios
+        List<User> expectedUsers = Collections.singletonList(new User());
+        ResponseEntity<List<User>> usersResponse = new ResponseEntity<>(expectedUsers, HttpStatus.OK);
+        when(restTemplate.exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)))
+            .thenReturn(usersResponse);
+
+        String view = userManager.deletePost(1L, model);
+
+        assertEquals("admin", view);
+        verify(model).addAttribute("token", "admin");
+        verify(model).addAttribute("posts", Collections.emptyList());
+        verify(model).addAttribute("users", expectedUsers);
+    }
 }
