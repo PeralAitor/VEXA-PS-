@@ -77,4 +77,24 @@ public class VEXAController {
     public void deleteUser(@RequestBody UserDTO userDTO) {
 		vexaService.deleteUser(userDTO);
 	}
+    
+    @PostMapping("/post/like")
+    public ResponseEntity<Post> likePost(@RequestParam Long postId, @RequestParam String token) {
+        User user = AuthService.getUserFromMap(token);
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        Post post = vexaService.likePost(postId, user.getUsername());
+        return post != null ? ResponseEntity.ok(post) : ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/post/unlike")
+    public ResponseEntity<Post> unlikePost(@RequestParam Long postId, @RequestParam String token) {
+        User user = AuthService.getUserFromMap(token);
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        Post post = vexaService.unlikePost(postId, user.getUsername());
+        return post != null ? ResponseEntity.ok(post) : ResponseEntity.notFound().build();
+    }
 }

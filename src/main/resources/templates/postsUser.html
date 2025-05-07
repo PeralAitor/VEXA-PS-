@@ -39,6 +39,13 @@
         .icon-wrapper {
             flex-shrink: 0;
         }
+        .likes-counter {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 0.25rem 0.75rem;
+            margin-top: 0.5rem;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -52,7 +59,7 @@
                 </a>
                 <form th:if="${token != null}" th:action="@{/posts}" method="get">
                     <button type="submit" class="btn btn-secondary">
-						<i class="fas fa-file-alt me-2"></i>Publicaciones
+                        <i class="fas fa-file-alt me-2"></i>Publicaciones
                     </button>
                 </form>
                 <form th:if="${token != null}" th:action="@{/logout}" method="post">
@@ -98,7 +105,7 @@
                  class="post-card mb-4 position-relative" 
                  th:style="'--post-color: hsl(' + (${stat.index} * 70) + ', 70%, 65%);'">
 
-                <!-- Botones de Acción (solo aparecen con hover) -->
+                <!-- Botones de Acción -->
                 <div class="action-btns position-absolute top-0 end-0 m-2 d-none">
                     <a th:href="@{/post/update(id=${post.id})}" class="btn btn-sm btn-outline-primary">
                         <i class="fas fa-edit"></i>
@@ -122,6 +129,13 @@
                 </div>
                 <div class="post-content">
                     <p th:text="${post.content}" class="mb-0">Contenido del post</p>
+                </div>
+                <!-- Contador de Likes -->
+                <div class="mt-2">
+                    <span class="likes-counter text-muted">
+                        <i class="fas fa-heart text-primary me-1"></i>
+                        <span th:text="${#sets.size(post.likedBy)}"></span> likes
+                    </span>
                 </div>
             </div>
         </div>

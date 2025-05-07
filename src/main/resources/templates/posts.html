@@ -9,24 +9,24 @@
 </head>
 <body>
     <!-- Header -->
-	<header class="glass-navbar">
+    <header class="glass-navbar">
         <nav class="container d-flex justify-content-between align-items-center py-3">
             <h1 class="logo">VEXA</h1>
-			<div class="d-flex align-items-center gap-3">
-			    <a href="/post" class="btn btn-primary">
-			        <i class="fas fa-plus me-2"></i>Crear Post
-			    </a>
-				<form th:if="${token != null}" th:action="@{/posts/owner}" method="get">
-			        <button type="submit" class="btn btn-secondary">
-						<i class="fas fa-user me-2"></i>Mi perfil
-			        </button>
-				</form>
-			    <form th:if="${token != null}" th:action="@{/logout}" method="post">
-			        <button type="submit" class="btn btn-secondary">
-			            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-			        </button>
-			    </form>
-			</div>
+            <div class="d-flex align-items-center gap-3">
+                <a href="/post" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Crear Post
+                </a>
+                <form th:if="${token != null}" th:action="@{/posts/owner}" method="get">
+                    <button type="submit" class="btn btn-secondary">
+                        <i class="fas fa-user me-2"></i>Mi perfil
+                    </button>
+                </form>
+                <form th:if="${token != null}" th:action="@{/logout}" method="post">
+                    <button type="submit" class="btn btn-secondary">
+                        <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                    </button>
+                </form>
+            </div>
         </nav>
     </header>
 
@@ -40,20 +40,57 @@
                 <p class="text-secondary">No hay posts disponibles.</p>
             </div>
 
+            <!-- Lista de Posts -->
             <div th:each="post, stat : ${posts}" 
-                 class="post-card mb-4" 
+                 class="post-card mb-4 p-4"
                  th:style="'--post-color: hsl(' + (${stat.index} * 70) + ', 70%, 65%);'">
+                
+                <!-- Encabezado del Post -->
                 <div class="d-flex align-items-center mb-3">
                     <div class="user-icon me-3">
                         <i class="fas fa-user-circle fa-2x"></i>
                     </div>
                     <div>
                         <h5 class="post-owner mb-0" th:text="${post.owner}"></h5>
-                        <small class="post-date" th:text="${post.formattedDate}"></small>
+                        <small class="post-date text-muted" th:text="${post.formattedDate}"></small>
                     </div>
                 </div>
-                <div class="post-content">
+
+                <!-- Contenido del Post -->
+                <div class="post-content mb-3">
                     <p th:text="${post.content}" class="mb-0"></p>
+                </div>
+
+                <!-- Sección de Likes -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <!-- Contador y Botones -->
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-primary rounded-pill">
+                            <i class="fas fa-heart me-1"></i>
+                            <span th:text="${#sets.size(post.likedBy)}"></span>
+                        </span>
+                        
+                        <!-- Botones Like/Unlike -->
+                        <form th:if="${token != null}" method="post">
+                            <input type="hidden" name="postId" th:value="${post.id}">
+                            
+                            <!-- Botón Like -->
+                            <button th:if="${!post.likedBy.contains(user.username)}"
+                                    th:formaction="@{/post/like}"
+                                    class="btn btn-sm btn-outline-primary"
+                                    type="submit">
+                                <i class="far fa-heart me-1"></i>Like
+                            </button>
+                            
+                            <!-- Botón Unlike -->
+                            <button th:if="${post.likedBy.contains(user.username)}"
+                                    th:formaction="@{/post/unlike}"
+                                    class="btn btn-sm btn-primary"
+                                    type="submit">
+                                <i class="fas fa-heart me-1"></i>Liked
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

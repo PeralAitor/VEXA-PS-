@@ -97,6 +97,7 @@ public class UserManager {
 				return "admin";
 	    	} else {
 		    	model.addAttribute("token", token);
+		    	model.addAttribute("user", user);
 		        model.addAttribute("successMessage", "User logged in successfully");
 		        
 		        List<Post> posts = getPosts(token);
@@ -126,7 +127,8 @@ public class UserManager {
 	public String getPosts(Model model) {
 		if (token != null) {
 			List<Post> posts = getPosts(token);
-	        model.addAttribute("posts", posts);	
+	        model.addAttribute("posts", posts);
+	        model.addAttribute("user", AuthService.getUserFromMap(token));
 		}
 	    return "posts";
 	}
@@ -240,22 +242,47 @@ public class UserManager {
 	@PostMapping("/user/delete")
 	public String deleteUser(@RequestParam String username, Model model) {
 		if (token.equals("admin")) {
-			User user = new User();
-			user.setUsername(username);
-			deleteUser(user);
-    		
-    		model.addAttribute("token", token);
-			model.addAttribute("successMessage", "Admin logged in successfully");
-			
-			List<Post> posts = getPosts(token);
-	        model.addAttribute("posts", posts);
+	        // Primero obtener todos los posts del usuario para forzar la carga de likes
+	        List<Post> allPosts = getPosts(token);
+	        
+	        User user = new User();
+	        user.setUsername(username);
+	        deleteUser(user);
+	        
+	        // Actualizar la lista de posts después de eliminar los likes
+	        List<Post> updatedPosts = getPosts(token);
+	        model.addAttribute("posts", updatedPosts);
 	        
 	        List<User> users = getAllUsers(token);
 	        model.addAttribute("users", users);
-    		
-        	return "admin";
-		}
-		return "index";
+	        model.addAttribute("successMessage", "Usuario y sus likes eliminados correctamente");
+	        return "admin";
+	    }
+	    return "index";
+	}
+	
+	@PostMapping("/post/like")
+	public String likePost(@RequestParam Long postId, Model model) {
+	    if (token != null) {
+	        Post post = likePost(postId, token);
+	        List<Post> posts = getPosts(token);
+	        model.addAttribute("posts", posts);
+	        model.addAttribute("user", AuthService.getUserFromMap(token));
+	        return "posts"; // Redirige a la vista de posts
+	    }
+	    return "index";
+	}
+
+	@PostMapping("/post/unlike")
+	public String unlikePost(@RequestParam Long postId, Model model) {
+	    if (token != null) {
+	        Post post = unlikePost(postId, token);
+	        List<Post> posts = getPosts(token);
+	        model.addAttribute("posts", posts);
+	        model.addAttribute("user", AuthService.getUserFromMap(token));
+	        return "posts";
+	    }
+	    return "index";
 	}
 
 	// A partir de aquí son las funciones que podríamos poner en el Service del lado del cliente
@@ -409,5 +436,15 @@ public class UserManager {
 	            throw ex;
 	        }
 	    }
+	}
+	
+	public Post likePost(Long postId, String token) {
+	    String url = POST_CONTROLLER_URL.concat("/post/like?postId=" + postId + "&token=" + token);
+	    return restTemplate.postForEntity(url, null, Post.class).getBody();
+	}
+
+	public Post unlikePost(Long postId, String token) {
+	    String url = POST_CONTROLLER_URL.concat("/post/unlike?postId=" + postId + "&token=" + token);
+	    return restTemplate.postForEntity(url, null, Post.class).getBody();
 	}
 }

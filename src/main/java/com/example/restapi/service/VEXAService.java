@@ -72,10 +72,39 @@ public class VEXAService {
 	}
 	
 	public void deleteUser(UserDTO userDTO) {
-		List<Post> posts = postRepository.findByOwner(userDTO.getUsername());
-		for (Post post : posts) {
-			postRepository.deleteById(post.getId());
-		}
-        userRepository.deleteById(userDTO.getUsername());
+		// Eliminar likes del usuario en todos los posts
+	    List<Post> allPosts = postRepository.findAll();
+	    for (Post post : allPosts) {
+	        if (post.getLikedBy().remove(userDTO.getUsername())) {
+	            postRepository.save(post);
+	        }
+	    }
+	    
+	    // Eliminar posts del usuario
+	    List<Post> userPosts = postRepository.findByOwner(userDTO.getUsername());
+	    postRepository.deleteAll(userPosts);
+	    
+	    // Eliminar el usuario
+	    userRepository.deleteById(userDTO.getUsername());
     }
+	
+	public Post likePost(Long postId, String username) {
+	    Optional<Post> postOpt = postRepository.findById(postId);
+	    if (postOpt.isEmpty()) return null;
+	    Post post = postOpt.get();
+	    if (post.getLikedBy().add(username)) {
+	        return postRepository.save(post);
+	    }
+	    return post;
+	}
+
+	public Post unlikePost(Long postId, String username) {
+	    Optional<Post> postOpt = postRepository.findById(postId);
+	    if (postOpt.isEmpty()) return null;
+	    Post post = postOpt.get();
+	    if (post.getLikedBy().remove(username)) {
+	        return postRepository.save(post);
+	    }
+	    return post;
+	}
 }

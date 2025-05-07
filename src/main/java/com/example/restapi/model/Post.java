@@ -2,9 +2,12 @@ package com.example.restapi.model;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.example.restapi.dto.PostDTO;
 
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -24,6 +27,9 @@ public class Post {
     private String content;
 
     private Date date;
+    
+    @ElementCollection
+    private Set<String> likedBy = new HashSet<>();
 
     public Post() {
     }
@@ -32,12 +38,14 @@ public class Post {
         this.content = postDTO.getContent();
         this.owner = owner.getUsername();
         this.date = new Date();
+        this.likedBy = new HashSet<>();
     }
 
     public Post(String content, String owner, Date date) {
         this.content = content;
         this.owner = owner;
         this.date = date;
+        this.likedBy = new HashSet<>();
     }
 
     public long getId() {
@@ -76,6 +84,14 @@ public class Post {
         if (date == null) return "Fecha no disponible"; // Evitar errores si la fecha es null
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         return sdf.format(date);
+    }
+    
+    public Set<String> getLikedBy() {
+        return likedBy;
+    }
+
+    public void setLikedBy(Set<String> likedBy) {
+        this.likedBy = likedBy;
     }
 
     @Override
