@@ -737,18 +737,6 @@ class UserManagerTest {
     }
 
     @Test
-    void testGetAllUsers_HttpClientErrorExceptionOtherStatus_ThrowsException() {
-        when(restTemplate.exchange(
-                anyString(),
-                eq(HttpMethod.GET),
-                isNull(),
-                any(ParameterizedTypeReference.class)))
-            .thenThrow(new HttpClientErrorException(HttpStatus.FORBIDDEN));
-
-        assertThrows(HttpClientErrorException.class, () -> userManager.getAllUsers("token"));
-    }
-
-    @Test
     void testGetAllUsers_OtherException_ThrowsException() {
         when(restTemplate.exchange(
                 anyString(),
@@ -758,6 +746,18 @@ class UserManagerTest {
             .thenThrow(new ResourceAccessException("Connection failed"));
 
         assertThrows(ResourceAccessException.class, () -> userManager.getAllUsers("token"));
+    }
+
+    @Test
+    void testGetAllUsers_HttpClientErrorExceptionOtherStatus_ThrowsException() {
+        when(restTemplate.exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.FORBIDDEN));
+
+        assertThrows(HttpClientErrorException.class, () -> userManager.getAllUsers("token"));
     }
     
     @Test
@@ -982,5 +982,227 @@ class UserManagerTest {
         verify(model).addAttribute("token", "admin");
         verify(model).addAttribute("posts", Collections.emptyList());
         verify(model).addAttribute("users", expectedUsers);
+    }
+    
+    @Test
+    void testLikePost_Success_ReturnsPost() {
+        Post expectedPost = new Post();
+        when(restTemplate.postForEntity(anyString(), isNull(), eq(Post.class)))
+            .thenReturn(new ResponseEntity<>(expectedPost, HttpStatus.OK));
+
+        Post result = userManager.likePost(1L, "validToken");
+        
+        assertEquals(expectedPost, result);
+    }
+
+    @Test
+    void testLikePost_Unauthorized_ThrowsException() {
+        when(restTemplate.postForEntity(anyString(), isNull(), eq(Post.class)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+
+        assertThrows(HttpClientErrorException.class, () -> userManager.likePost(1L, "invalidToken"));
+    }
+
+    @Test
+    void testLikePost_OtherException_ThrowsException() {
+        when(restTemplate.postForEntity(anyString(), isNull(), eq(Post.class)))
+            .thenThrow(new ResourceAccessException("Connection failed"));
+
+        assertThrows(ResourceAccessException.class, () -> userManager.likePost(1L, "token"));
+    }
+
+    // Tests para likePost(@RequestParam Long postId, Model model) - método del controlador
+
+    @Test
+    void testLikePostController_Success_Model() {
+        ReflectionTestUtils.setField(userManager, "token", "validToken");
+        
+        Post expectedPost = new Post();
+        when(restTemplate.postForEntity(anyString(), isNull(), eq(Post.class)))
+            .thenReturn(new ResponseEntity<>(expectedPost, HttpStatus.OK));
+        
+        List<Post> expectedPosts = Collections.singletonList(expectedPost);
+        when(restTemplate.getForObject(anyString(), eq(List.class)))
+            .thenReturn(expectedPosts);
+
+        String view = userManager.likePost(1L, model);
+
+        assertEquals("posts", view);
+        verify(model).addAttribute("posts", expectedPosts);
+        verify(model).addAttribute(eq("user"), any());
+    }
+
+    @Test
+    void testLikePostController_NoToken_ReturnsIndex() {
+        ReflectionTestUtils.setField(userManager, "token", null);
+
+        String view = userManager.likePost(1L, model);
+
+        assertEquals("index", view);
+    }
+
+    // Tests para unlikePost(Long postId, String token) - método del servicio
+
+    @Test
+    void testUnlikePost_Success_ReturnsPost() {
+        Post expectedPost = new Post();
+        when(restTemplate.postForEntity(anyString(), isNull(), eq(Post.class)))
+            .thenReturn(new ResponseEntity<>(expectedPost, HttpStatus.OK));
+
+        Post result = userManager.unlikePost(1L, "validToken");
+        
+        assertEquals(expectedPost, result);
+    }
+
+    @Test
+    void testUnlikePost_Unauthorized_ThrowsException() {
+        when(restTemplate.postForEntity(anyString(), isNull(), eq(Post.class)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+
+        assertThrows(HttpClientErrorException.class, () -> userManager.unlikePost(1L, "invalidToken"));
+    }
+
+    @Test
+    void testUnlikePost_OtherException_ThrowsException() {
+        when(restTemplate.postForEntity(anyString(), isNull(), eq(Post.class)))
+            .thenThrow(new ResourceAccessException("Connection failed"));
+
+        assertThrows(ResourceAccessException.class, () -> userManager.unlikePost(1L, "token"));
+    }
+
+    // Tests para unlikePost(@RequestParam Long postId, Model model) - método del controlador
+
+    @Test
+    void testUnlikePostController_Success_Model() {
+        ReflectionTestUtils.setField(userManager, "token", "validToken");
+        
+        Post expectedPost = new Post();
+        when(restTemplate.postForEntity(anyString(), isNull(), eq(Post.class)))
+            .thenReturn(new ResponseEntity<>(expectedPost, HttpStatus.OK));
+        
+        List<Post> expectedPosts = Collections.singletonList(expectedPost);
+        when(restTemplate.getForObject(anyString(), eq(List.class)))
+            .thenReturn(expectedPosts);
+
+        String view = userManager.unlikePost(1L, model);
+
+        assertEquals("posts", view);
+        verify(model).addAttribute("posts", expectedPosts);
+        verify(model).addAttribute(eq("user"), any());
+    }
+
+    @Test
+    void testUnlikePostController_NoToken_ReturnsIndex() {
+        ReflectionTestUtils.setField(userManager, "token", null);
+
+        String view = userManager.unlikePost(1L, model);
+
+        assertEquals("index", view);
+    }
+
+    // Tests para deleteUser(@RequestParam String username, Model model) - método del controlador
+
+ // Tests corregidos para deleteUser
+
+    @Test
+    void testDeleteUserController_Admin_Success_Model() {
+        ReflectionTestUtils.setField(userManager, "token", "admin");
+        
+        // Mock de la eliminación del usuario - ahora mockeamos correctamente postForEntity
+        when(restTemplate.postForEntity(anyString(), any(), eq(Void.class)))
+            .thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        
+        // Mock de la obtención de posts actualizados
+        List<Post> expectedPosts = Collections.singletonList(new Post());
+        when(restTemplate.getForObject(anyString(), eq(List.class)))
+            .thenReturn(expectedPosts);
+        
+        // Mock de la obtención de usuarios
+        List<User> expectedUsers = Collections.singletonList(new User());
+        ResponseEntity<List<User>> usersResponse = new ResponseEntity<>(expectedUsers, HttpStatus.OK);
+        when(restTemplate.exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)))
+            .thenReturn(usersResponse);
+
+        String view = userManager.deleteUser("testuser", model);
+
+        assertEquals("admin", view);
+        verify(model).addAttribute("posts", expectedPosts);
+        verify(model).addAttribute("users", expectedUsers);
+        verify(model).addAttribute("successMessage", "Usuario y sus likes eliminados correctamente");
+    }
+
+    @Test
+    void testDeleteUserController_Admin_ConnectionError_Model() {
+        ReflectionTestUtils.setField(userManager, "token", "admin");
+        
+        // Mock de error de conexión - ahora mockeamos correctamente la excepción
+        when(restTemplate.postForEntity(anyString(), any(), eq(Void.class)))
+            .thenThrow(new ResourceAccessException("Connection failed"));
+
+        assertThrows(ResourceAccessException.class, () -> userManager.deleteUser("testuser", model));
+    }
+
+    @Test
+    void testDeleteUserController_NotAdmin_ReturnsIndex() {
+        ReflectionTestUtils.setField(userManager, "token", "userToken");
+
+        String view = userManager.deleteUser("testuser", model);
+
+        assertEquals("index", view);
+    }
+    
+    @Test
+    void testDeleteUser_Success() {
+        // No necesitamos mockear el resultado ya que el método es void
+        assertDoesNotThrow(() -> userManager.deleteUser(new User()));
+        
+        verify(restTemplate).postForEntity(
+            contains("/user/delete"),
+            any(User.class),
+            eq(Void.class)
+        );
+    }
+
+    @Test
+    void testDeleteUser_Unauthorized_DoesNotThrow() {
+        // Mockeamos una excepción UNAUTHORIZED
+        when(restTemplate.postForEntity(anyString(), any(User.class), eq(Void.class)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+        
+        // Verificamos que no lanza excepción
+        assertDoesNotThrow(() -> userManager.deleteUser(new User()));
+    }
+
+    @Test
+    void testDeleteUser_OtherHttpClientError_ThrowsException() {
+        // Mockeamos una excepción diferente (FORBIDDEN en este caso)
+        HttpClientErrorException forbiddenException = new HttpClientErrorException(HttpStatus.FORBIDDEN);
+        when(restTemplate.postForEntity(anyString(), any(User.class), eq(Void.class)))
+            .thenThrow(forbiddenException);
+        
+        // Verificamos que lanza la misma excepción
+        HttpClientErrorException thrown = assertThrows(
+            HttpClientErrorException.class,
+            () -> userManager.deleteUser(new User())
+        );
+        
+        assertEquals(HttpStatus.FORBIDDEN, thrown.getStatusCode());
+    }
+
+    @Test
+    void testDeleteUser_OtherException_ThrowsException() {
+        // Mockeamos una excepción no HttpClientErrorException
+        when(restTemplate.postForEntity(anyString(), any(User.class), eq(Void.class)))
+            .thenThrow(new ResourceAccessException("Connection failed"));
+        
+        // Verificamos que lanza la misma excepción
+        assertThrows(
+            ResourceAccessException.class,
+            () -> userManager.deleteUser(new User())
+        );
     }
 }
