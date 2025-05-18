@@ -1,12 +1,18 @@
 FROM ubuntu:latest
 
 RUN apt-get update && \
-    apt-get install -y doxygen graphviz
+    apt-get install -y doxygen graphviz git && \
+    rm -rf /var/lib/apt/lists/*
 
-WORKDIR /docs-generator
+WORKDIR /doxygen
 
 COPY src/main/resources/Doxyfile .
+COPY src/main/java /src
 
-RUN mkdir -p /docs-output && chmod -R a+rwx /docs-output
-
-CMD ["sh", "-c", "doxygen Doxyfile && cp -r out/html/* /docs-output/"]
+RUN mkdir -p /output && \
+    chmod -R 777 /output && \
+    echo "=== Archivos fuente ===" && \
+    ls -lR /src && \
+    doxygen Doxyfile 2>&1 | tee doxygen.log && \
+    echo "=== Resultado generado ===" && \
+    ls -lR /output/html
