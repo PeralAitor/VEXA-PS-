@@ -31,7 +31,7 @@ jobs:
     - name: Prepare docs folder
       run: |
         mkdir -p docs
-        cp -r target/doxygen/out/html/* docs/
+        cp -r target/doxygen/html/* docs/
 
     - name: Deploy to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@v4
