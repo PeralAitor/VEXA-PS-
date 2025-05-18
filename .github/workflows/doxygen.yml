@@ -1,40 +1,40 @@
-name: Auto Doxygen Documentation
+name: Documentation
 
 on:
   push:
-    branches: [ "main" ]
-  workflow_dispatch:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
 
 jobs:
-  generate-and-deploy-docs:
+  generate-documentation:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Java 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
-      - name: Install Doxygen dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y doxygen graphviz
+    - name: Generate documentation
+      run: docker compose --profile=docs up --build --abort-on-container-exit
 
-      - name: Generate documentation
-        run: |
-          mvn doxygen:generate -Ddoxygen.config.file=src/main/resources/Doxyfile
-          # Copia los archivos generados a la carpeta docs
-          mkdir -p docs
-          cp -r target/doxygen/html/* docs/
+    - name: Prepare docs folder
+      run: |
+        mkdir -p docs
+        cp -r target/doxygen/html/* docs/
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./target/doxygen/html
-          keep_files: false
-          force_orphan: true
+    - name: Deploy to GitHub Pages
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        branch: gh-pages
+        folder: docs
