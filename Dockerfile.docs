@@ -1,18 +1,12 @@
 FROM ubuntu:latest
 
 RUN apt-get update && \
-    apt-get install -y doxygen graphviz git
+    apt-get install -y doxygen graphviz
 
 WORKDIR /docs-generator
 
 COPY src/main/resources/Doxyfile .
-COPY src/main/java /app/src/main/java
 
-RUN mkdir -p /docs-generator/out && chmod -R a+rwx /docs-generator
+RUN mkdir -p /docs-output && chmod -R a+rwx /docs-output
 
-RUN echo "=== Estructura del contenedor ===" && \
-    ls -la && \
-    ls -la /app/src/main/java && \
-    echo "==============================="
-
-CMD ["sh", "-c", "doxygen Doxyfile && ls -la /docs-generator/out/html"]
+CMD ["sh", "-c", "doxygen Doxyfile && cp -r out/html/* /docs-output/"]
