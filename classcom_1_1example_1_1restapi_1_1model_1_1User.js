@@ -1,0 +1,25 @@
+var classcom_1_1example_1_1restapi_1_1model_1_1User =
+[
+    [ "User", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#a7d3e2886baf6f3f216f0616c6bebe115", null ],
+    [ "User", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#a0a418bb36ec9ed081945a7ae73af8b8b", null ],
+    [ "User", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#a4ce258fc62b2cd0f7fb89cdb9ae54a92", null ],
+    [ "User", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#a826cbbb6058f6a78e204511bbd0b5d29", null ],
+    [ "equals", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#a4fa3b94128f46d55ff698b3d5413a347", null ],
+    [ "getAge", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#ada30ef654b2dbc3841bada24c543a37a", null ],
+    [ "getName", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#a8e3624864a6fdd93870d61d24f0fa2b2", null ],
+    [ "getPassword", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#a512f732c60bc16c8a22b5b78459b996f", null ],
+    [ "getSurnames", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#a5fe900c1adcf07f70742a6c13112bac6", null ],
+    [ "getUsername", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#ab3af06133105f7f58f651f302564ca76", null ],
+    [ "hashCode", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#aa660cc30d3548ff95316f88fe7b40b3f", null ],
+    [ "setAge", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#ab338e3e9a8ee5d9f3a0afabda03ca9b1", null ],
+    [ "setName", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#a1ad752e9203c9d97ba370bc05df738eb", null ],
+    [ "setPassword", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#a3c1ae372d665a8817667b835ac5ffb35", null ],
+    [ "setSurnames", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#af3273cc342081a9de69aa93a56fdc733", null ],
+    [ "setUsername", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#a01f756a8b9c34a45f96ad6816a9bec1d", null ],
+    [ "toString", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#a2a08103f914332c6420ca3b7c5c4ed33", null ],
+    [ "age", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#ab568eb0b06b57c2d0cb1fb1ae3c1439a", null ],
+    [ "name", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#af94cdf3e471fa7765148900dcfd526a4", null ],
+    [ "password", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#a0dae2a508a4579515c20abd91d8f7e09", null ],
+    [ "surnames", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#a54fd4d8c729f536cf2704022d3f6bc25", null ],
+    [ "username", "classcom_1_1example_1_1restapi_1_1model_1_1User.html#afd30fb384a4eef7cb789ba7859224ea3", null ]
+];

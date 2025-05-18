@@ -1,0 +1,25 @@
+var classcom_1_1example_1_1restapi_1_1model_1_1Post =
+[
+    [ "Post", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#a086087bfe5efa4c6dd7b7dca542be3ac", null ],
+    [ "Post", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#a59bc34d97c00c6ad30ec68582a69d88b", null ],
+    [ "Post", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#a04370fb28184f291146a489570cc9e78", null ],
+    [ "equals", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#a70b67c9f65c5c98a0280e88116074dd4", null ],
+    [ "getContent", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#a0442720a4be0433598a74123168d5284", null ],
+    [ "getDate", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#a64f1589839ce8ad93f81e939fe4108ea", null ],
+    [ "getFormattedDate", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#a9efcd4ac8d03e7bc92b1ac96441f4604", null ],
+    [ "getId", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#a728e25846853e1885a0f8c68bb0a4c26", null ],
+    [ "getLikedBy", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#a1d09dd5fd3bb563a2f5a8e6f425fb31a", null ],
+    [ "getOwner", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#a36ca6cc0fe40989fb702ce576427d904", null ],
+    [ "hashCode", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#a5503c38f71789a1788ca1ce7a3c98570", null ],
+    [ "setContent", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#ab65e55c05d52dce250f9479be6a6095c", null ],
+    [ "setDate", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#aaee7718c2756c5bfb627c735134138b2", null ],
+    [ "setId", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#a02fe005367c8980cf4da39946071fce9", null ],
+    [ "setLikedBy", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#ab2de3351ce46312a465ee28666cd5552", null ],
+    [ "setOwner", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#a65b6dc83d53d7fa6a6ddf103f01e3cc1", null ],
+    [ "toString", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#a0b210608c829fe8ccf5fae7f316a1c13", null ],
+    [ "content", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#acbbb03246a31e7f9639ab6e3fa2c4766", null ],
+    [ "date", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#a4f8ea365f7b33108f195711cb51baacd", null ],
+    [ "id", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#a1d3c0ee6dc44a557d5f677bfdec53799", null ],
+    [ "likedBy", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#a5801913d19986efa5f6c2ee1946824a5", null ],
+    [ "owner", "classcom_1_1example_1_1restapi_1_1model_1_1Post.html#a51800133a30aa8c32e1b58294b4d8270", null ]
+];
