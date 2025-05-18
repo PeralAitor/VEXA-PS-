@@ -3,8 +3,10 @@ FROM ubuntu:latest
 RUN apt-get update && \
     apt-get install -y doxygen graphviz
 
-WORKDIR /app/src/main/resources
+WORKDIR /docs-generator
 
-COPY . /app
+COPY src/main/resources/Doxyfile .
 
-CMD ["doxygen", "Doxyfile"]
+RUN mkdir -p /docs-output && chmod -R a+rwx /docs-output
+
+CMD ["sh", "-c", "doxygen Doxyfile && cp -r out/html/* /docs-output/"]
