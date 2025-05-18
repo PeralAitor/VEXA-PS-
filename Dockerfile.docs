@@ -9,10 +9,6 @@ WORKDIR /doxygen
 COPY src/main/resources/Doxyfile .
 COPY src/main/java /src
 
-RUN mkdir -p /output && \
-    chmod -R 777 /output && \
-    echo "=== Archivos fuente ===" && \
-    ls -lR /src && \
-    doxygen Doxyfile 2>&1 | tee doxygen.log && \
-    echo "=== Resultado generado ===" && \
-    ls -lR /output/html
+VOLUME /output
+
+CMD ["doxygen", "Doxyfile"]
