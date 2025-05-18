@@ -126,6 +126,21 @@ Además, al ejecutar el comando *mvn test* se generará un *index.html* en la ru
 Para comprobar que los test unitarios cubren más del 90% del proyecto se debe utilizar el siguiente comando:
 
 	mvn verify
+	
+
+Generación de documentación
+-----------
+Tras haber compilado el proyecto con el comando:
+	
+	mvn compile
+	
+para generar un .html con toda la documentación de las clases, hay que ejecutar el comando:
+
+	mvn doxygen:report
+	
+Después de ejcutarlo, se genera un index.html en:
+
+	./target/doxygen/index.html
 
 Referencias
 -----------
