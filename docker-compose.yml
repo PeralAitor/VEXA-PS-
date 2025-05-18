@@ -5,5 +5,5 @@ services:
       dockerfile: Dockerfile.docs
     profiles: ["docs"]
     volumes:
-      - .target/doxygen:/app/src/main/resources/
+      - ./target/doxygen:/app/src/main/resources/out
       - ./:/app
