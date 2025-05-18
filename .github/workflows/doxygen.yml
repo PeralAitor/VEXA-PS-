@@ -27,16 +27,11 @@ jobs:
 
     - name: Generate documentation
       run: |
-        # Limpiar y forzar rebuild
-        docker compose --profile=docs down
-        docker compose --profile=docs build --no-cache
-        docker compose --profile=docs up --abort-on-container-exit
-    
+        docker compose --profile=docs build
+        docker compose --profile=docs up server-docs
         # Diagnóstico post-ejecución
         echo "=== Estructura local ==="
         ls -lR target/doxygen
-        echo "=== Log de Doxygen ==="
-        docker compose --profile=docs run server-docs cat /doxygen/doxygen.log
     
     - name: Prepare docs folder
       run: |
@@ -50,7 +45,6 @@ jobs:
           echo "ERROR: No hay documentación generada"
           exit 1
         fi
-
     - name: Deploy to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@v4
       with:
