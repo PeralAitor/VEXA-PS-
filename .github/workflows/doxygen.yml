@@ -27,12 +27,16 @@ jobs:
 
     - name: Generate documentation
       run: |
-        # Forzar recreación de contenedores
-        docker compose --profile=docs up --build --force-recreate
-        
-        # Debug: Ver estructura generada
-        echo "=== Contenido de target/doxygen ==="
-        ls -R target/doxygen
+        # Limpiar y forzar rebuild
+        docker compose --profile=docs down
+        docker compose --profile=docs build --no-cache
+        docker compose --profile=docs up --abort-on-container-exit
+    
+        # Diagnóstico post-ejecución
+        echo "=== Estructura local ==="
+        ls -lR target/doxygen
+        echo "=== Log de Doxygen ==="
+        docker compose --profile=docs run server-docs cat /doxygen/doxygen.log
     
     - name: Prepare docs folder
       run: |
