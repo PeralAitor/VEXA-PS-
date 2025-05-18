@@ -26,12 +26,26 @@ jobs:
       uses: docker/setup-buildx-action@v3
 
     - name: Generate documentation
-      run: docker compose --profile=docs up --build --abort-on-container-exit
-
+      run: |
+        # Forzar recreación de contenedores
+        docker compose --profile=docs up --build --force-recreate
+        
+        # Debug: Ver estructura generada
+        echo "=== Contenido de target/doxygen ==="
+        ls -R target/doxygen
+    
     - name: Prepare docs folder
       run: |
-        mkdir -p docs
-        cp -r target/doxygen/html/* docs/
+        # Crear docs solo si hay contenido
+        if [ -d "target/doxygen/html" ]; then
+          mkdir -p docs
+          cp -r target/doxygen/html/* docs/
+          echo "Documentación copiada!"
+          ls -la docs
+        else
+          echo "ERROR: No hay documentación generada"
+          exit 1
+        fi
 
     - name: Deploy to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@v4
