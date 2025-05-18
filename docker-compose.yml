@@ -5,5 +5,4 @@ services:
       dockerfile: Dockerfile.docs
     profiles: ["docs"]
     volumes:
-      - ./target/doxygen:/docs-output
-      - ./src/main/java:/code-source
+      - ./target/doxygen:/output
