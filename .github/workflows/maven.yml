@@ -24,45 +24,46 @@ jobs:
       url: ${{steps.deployment.outputs.page_ulr}}
 
     steps:
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: maven
-        
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      # 1. Clona tu código
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Checkout code
-      uses: actions/checkout@v4
+      # 2. Prepara JDK
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
 
-    - name: Install Doxygen
-      run: sudo apt-get update && sudo apt-get install -y doxygen graphviz
+      # 3. Instala Doxygen y Graphviz
+      - name: Install Doxygen
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz
 
-    - name: Generate Maven Site
-      run: mvn site
+      # 4. Genera el sitio y la doc
+      - name: Build & Generate Site (incluye Doxygen)
+        run: mvn clean site
 
-    - name: Generate doxygen docs
-      run: mvn doxygen:report
+      # 5. Copia la documentación a la carpeta docs
+      - name: Copy generated docs
+        run: |
+          mkdir -p docs/site
+          cp -r target/site/* docs/site/
+          mkdir -p docs/doxygen
+          cp -r target/site/doxygen/* docs/doxygen/
 
-    - name: Copy site output to docs/site and docs/doxygen folder to docs/doxygen
-      run: |
-        mkdir -p docs
-        mkdir -p docs/site
-        mkdir -p docs/doxygen
-        cp -r target/site/* docs/site/
-        cp -r target/doxygen/* docs/doxygen/
-
-    - name: Commit and push docs
-      run: |
-        git config --global user.name "github-actions"
-        git config --global user.email "github-actions@github.com"
-        git add -f docs
-        git commit -m "Update Maven site [CI skip]" || echo "No changes to commit"
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+      # 6. Publica en GitHub Pages desde main/docs
+      - name: Commit and push docs
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add -f docs
+          git commit -m "Update docs [ci skip]" || echo "No changes"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
     #- name: Update dependency graph
     #  uses: advanced-security/maven-dependency-submission-action@571e99aab1055c2e71a1e2309b9691de18d6b7d6
