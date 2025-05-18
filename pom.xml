@@ -113,6 +113,11 @@
     
     <build>
         <plugins>
+        	<plugin>
+	            <groupId>org.apache.maven.plugins</groupId>
+	            <artifactId>maven-site-plugin</artifactId>
+	            <version>3.12.1</version>
+        	</plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -184,6 +189,24 @@
 			</plugin>
 			
 			<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>3.4.3</version>
+            </plugin>
+			
+			<plugin>
+                <groupId>org.apache.maven.doxia</groupId>
+                <artifactId>doxia-core</artifactId>
+                <version>1.9.1</version>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.reporting</groupId>
+                <artifactId>maven-reporting-api</artifactId>
+                <version>3.1.1</version>
+            </plugin>
+			
+			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>2.6</version>
 				<executions>
@@ -198,8 +221,8 @@
 							<outputDirectory>${basedir}/docs</outputDirectory>
 							<resources>
 								<resource>
-									<directory>${basedir}/target/doxygen/html</directory>
-									<filtering>true</filtering>
+								<directory>${basedir}/target/doxygen/html</directory>
+								<filtering>true</filtering>
 								</resource>
 							</resources>
 						</configuration>

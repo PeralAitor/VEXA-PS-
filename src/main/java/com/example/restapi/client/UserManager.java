@@ -57,6 +57,24 @@ public class UserManager {
 		return "registration";
 	}
 
+	/**
+	 * @brief Procesa el formulario de registro de usuarios.
+	 * 
+	 * Crea un nuevo usuario con los parámetros recibidos y trata de registrarlo.
+	 * Añade al modelo un mensaje de éxito o error según el resultado del registro.
+	 * 
+	 * @param username Nombre de usuario único (para login)
+	 * @param password Contraseña del usuario
+	 * @param name Nombre real del usuario
+	 * @param surnames Apellidos del usuario
+	 * @param age Edad del usuario en años
+	 * @param model Objeto Model de Spring para pasar atributos a la vista
+	 * @return String Nombre de la vista a renderizar ("registration")
+	 * 
+	 * @note Añade al modelo:
+	 *       - successMessage si el registro fue exitoso
+	 *       - errorMessage si el usuario ya existe
+	 */
 	@PostMapping("/registration")
 	public String register(@RequestParam String username,@RequestParam String password,@RequestParam String name,
 			@RequestParam String surnames,@RequestParam int age, Model model) {
