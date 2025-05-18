@@ -1,9 +1,0 @@
-services:
-  server-docs:
-    build:
-      context: .
-      dockerfile: Dockerfile.docs
-    profiles: ["docs"]
-    volumes:
-      - .target/doxygen:/app/src/main/resources/
-      - ./:/app
