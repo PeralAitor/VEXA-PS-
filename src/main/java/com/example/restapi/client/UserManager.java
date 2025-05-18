@@ -27,7 +27,12 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.servlet.http.HttpServletRequest;
 @Controller
 public class UserManager {
-
+	
+	/**
+     * @brief Constructor que inicializa el cliente REST y las URLs base
+     * @details Establece las URLs de los controladores de autenticación y posts,
+     *          y crea una instancia de RestTemplate para las comunicaciones HTTP
+     */
 	private final String USER_CONTROLLER_URL;
 	private final String POST_CONTROLLER_URL;
 	private final RestTemplate restTemplate;
@@ -40,18 +45,36 @@ public class UserManager {
 		POST_CONTROLLER_URL = "http://localhost:8080/vexa";
 		this.restTemplate = new RestTemplate();
 	}
-
+	
+    /**
+     * @brief Añade atributos comunes a todas las vistas
+     * @param model Objeto Model para pasar atributos a la vista
+     * @param request Objeto HttpServletRequest para obtener la URL actual
+     * @note Añade al modelo:
+     *       - currentUrl: URL actual de la solicitud
+     *       - token: Token de autenticación del usuario
+     */
 	@ModelAttribute
 	public void addAttributes(Model model, HttpServletRequest request) {
 		model.addAttribute("currentUrl", ServletUriComponentsBuilder.fromRequestUri(request).toUriString());
 		model.addAttribute("token", token);
 	}
-
+	
+    /**
+     * @brief Muestra el formulario de registro completo
+     * @param model Objeto Model para pasar atributos a la vista
+     * @return String Nombre de la vista a renderizar ("registration")
+     */
 	@GetMapping("/")
 	public String registerForm(User user) {
 		return "index"; 
 	}
-
+	
+    /**
+     * @brief Muestra el formulario de registro completo
+     * @param model Objeto Model para pasar atributos a la vista
+     * @return String Nombre de la vista a renderizar ("registration")
+     */
 	@GetMapping("/registration")
 	public String showRegistrationForm(Model model) {
 		return "registration";
@@ -89,12 +112,32 @@ public class UserManager {
 
 		return "registration";
 	}
-
+	
+    /**
+     * @brief Muestra el formulario de login
+     * @param model Objeto Model para pasar atributos a la vista
+     * @return String Nombre de la vista a renderizar ("login")
+     */
 	@GetMapping("/login")
 	public String showLoginForm(Model model) {
 		return "login";
 	}
-
+	
+    /**
+     * @brief Procesa el formulario de login
+     * @param username Nombre de usuario
+     * @param password Contraseña del usuario
+     * @param model Objeto Model para pasar atributos a la vista
+     * @return String Vista a renderizar según el tipo de usuario:
+     *         - "admin" para administradores
+     *         - "posts" para usuarios normales
+     *         - "login" si falla la autenticación
+     * @note Añade al modelo:
+     *       - token: Token de autenticación
+     *       - successMessage/errorMessage: Mensajes de estado
+     *       - posts: Lista de posts (para usuarios)
+     *       - users: Lista de usuarios (solo admin)
+     */
 	@PostMapping("/login")
 	public String login(@RequestParam String username, @RequestParam String password, Model model) {
 	    User user = new User(username, password);
@@ -129,6 +172,13 @@ public class UserManager {
 	    }
 	}
 	
+    /**
+     * @brief Procesa el logout del usuario
+     * @param model Objeto Model para pasar atributos a la vista
+     * @return String Nombre de la vista a renderizar ("index")
+     * @note Añade al modelo:
+     *       - successMessage/errorMessage: Mensajes de estado
+     */
 	@PostMapping("/logout")
 	public String logout(Model model) {
 		if (logout(token)) {
@@ -141,6 +191,14 @@ public class UserManager {
 		return "index";
 	}
 	
+    /**
+     * @brief Obtiene todos los posts visibles para el usuario
+     * @param model Objeto Model para pasar atributos a la vista
+     * @return String Nombre de la vista a renderizar ("posts")
+     * @note Añade al modelo:
+     *       - posts: Lista de posts
+     *       - user: Datos del usuario actual
+     */
 	@GetMapping("/posts")
 	public String getPosts(Model model) {
 		if (token != null) {
@@ -151,6 +209,14 @@ public class UserManager {
 	    return "posts";
 	}
 	
+    /**
+     * @brief Obtiene los posts del usuario actual
+     * @param model Objeto Model para pasar atributos a la vista
+     * @return String Nombre de la vista a renderizar ("postsUser")
+     * @note Añade al modelo:
+     *       - posts: Lista de posts del usuario
+     *       - user: Datos del usuario actual
+     */
 	@GetMapping("/posts/owner")
 	public String getPostsOwner(Model model) {
 		if (token != null) {
@@ -161,11 +227,26 @@ public class UserManager {
 	    return "postsUser";
 	}
 	
+    /**
+     * @brief Muestra el formulario de creación de posts
+     * @param model Objeto Model para pasar atributos a la vista
+     * @return String Nombre de la vista a renderizar ("post")
+     */
 	@GetMapping("/post") 
 	public String post(Model model) {
 		return "post";
 	}
 	
+    /**
+     * @brief Crea un nuevo post
+     * @param content Contenido del post
+     * @param model Objeto Model para pasar atributos a la vista
+     * @return String Vista a renderizar:
+     *         - "post" con mensaje de éxito/error
+     *         - "index" si no hay token válido
+     * @note Añade al modelo:
+     *       - successMessage/errorMessage: Mensajes de estado
+     */
 	@PostMapping("/post")
 	public String createPost(@RequestParam String content, Model model) {
 		if (token != null) {
@@ -257,6 +338,18 @@ public class UserManager {
 	    return "index";
 	}
 	
+    /**
+     * @brief Elimina un usuario (solo admin)
+     * @param username Nombre de usuario a eliminar
+     * @param model Objeto Model para pasar atributos a la vista
+     * @return String Vista a renderizar:
+     *         - "admin" con lista actualizada
+     *         - "index" si no hay permisos
+     * @note Añade al modelo:
+     *       - posts: Lista actualizada de posts
+     *       - users: Lista actualizada de usuarios
+     *       - successMessage: Mensaje de confirmación
+     */
 	@PostMapping("/user/delete")
 	public String deleteUser(@RequestParam String username, Model model) {
 		if (token.equals("admin")) {
@@ -303,7 +396,14 @@ public class UserManager {
 	    return "index";
 	}
 
-	// A partir de aquí son las funciones que podríamos poner en el Service del lado del cliente
+    /**
+     * @brief Registra un nuevo usuario en el sistema
+     * @param user Objeto User con los datos del usuario
+     * @return boolean Resultado de la operación:
+     *         - true: Registro exitoso
+     *         - false: Usuario ya existe
+     * @throws HttpClientErrorException Si ocurre un error HTTP inesperado
+     */
 	public boolean register(User user) {
 		try {
 			String url = USER_CONTROLLER_URL.concat("/registration");
@@ -318,6 +418,12 @@ public class UserManager {
 		}
 	}
 	
+    /**
+     * @brief Autentica un usuario en el sistema
+     * @param user Objeto User con credenciales
+     * @return String Token de autenticación o null si falla
+     * @throws HttpClientErrorException Si ocurre un error HTTP inesperado
+     */
 	public String login(User user) {
 		try {
 			String url = USER_CONTROLLER_URL.concat("/login");
@@ -332,7 +438,6 @@ public class UserManager {
 		}
 	}
 
-	
 	
 	public boolean logout(String token) {
 		try {
@@ -456,11 +561,23 @@ public class UserManager {
 	    }
 	}
 	
+	/**
+     * @brief Da like a un post específico
+     * @param postId ID del post a likear
+     * @param token Token de autenticación
+     * @return Post Objeto Post actualizado
+     */
 	public Post likePost(Long postId, String token) {
 	    String url = POST_CONTROLLER_URL.concat("/post/like?postId=" + postId + "&token=" + token);
 	    return restTemplate.postForEntity(url, null, Post.class).getBody();
 	}
-
+	
+	/**
+     * @brief Quita like a un post específico
+     * @param postId ID del post para quitar like
+     * @param token Token de autenticación
+     * @return Post Objeto Post actualizado
+     */
 	public Post unlikePost(Long postId, String token) {
 	    String url = POST_CONTROLLER_URL.concat("/post/unlike?postId=" + postId + "&token=" + token);
 	    return restTemplate.postForEntity(url, null, Post.class).getBody();
