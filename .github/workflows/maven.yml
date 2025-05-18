@@ -42,6 +42,11 @@ jobs:
           - name: Build and run documentation container
             run: |
               mvn site 
+          - name : Copy site doxygen output to docs folder
+            run: |
+              ls
+              mkdir -p doc
+              cp -r target/doxygen/* docs/
           - name: Deploy
             uses: JamesIves/github-pages-deploy-action@v4
             with:
