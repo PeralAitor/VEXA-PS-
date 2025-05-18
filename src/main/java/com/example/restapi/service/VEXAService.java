@@ -27,7 +27,9 @@ public class VEXAService {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
     }
-
+    /*
+     * Crea un nuevo post en el sistema.
+     */
     public Post createPost(PostDTO postDTO, String token) {
         User user = AuthService.getUserFromMap(token);
         if (user != null) {
