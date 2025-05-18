@@ -26,7 +26,7 @@ jobs:
 
       - name: Generate documentation
         run: |
-          mvn doxygen:generate
+          mvn doxygen:generate -Ddoxygen.config.file=src/main/resources/Doxyfile
           # Copia los archivos generados a la carpeta docs
           mkdir -p docs
           cp -r target/doxygen/html/* docs/
