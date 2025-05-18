@@ -31,7 +31,7 @@ jobs:
 
     - name: Build and run documentation container
       run: |
-        docker compose --profile=docs up --build --abort-on-container-exit --exit-code-from server-docs
+        mvn site
 
     - name: Copy site doxygen output to docs folder
       run: |
